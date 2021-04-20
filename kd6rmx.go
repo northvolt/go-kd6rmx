@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-// KD6RMX is a wrapper for control functions for the KD6RMX contact image sensor.
-type KD6RMX struct {
+// Sensor is a wrapper for control functions for the KD6RMX contact image sensor.
+type Sensor struct {
 	Port string
 }
 
-func (cis KD6RMX) CommunicationSpeed(baud int) error {
+func (cis Sensor) CommunicationSpeed(baud int) error {
 	var param string
 	switch baud {
 	case 9600:
@@ -30,7 +30,7 @@ func (cis KD6RMX) CommunicationSpeed(baud int) error {
 	return err
 }
 
-func (cis KD6RMX) SetOutputFrequency(freq float32) error {
+func (cis Sensor) SetOutputFrequency(freq float32) error {
 	var val string
 	switch freq {
 	case 48.0:
@@ -105,7 +105,7 @@ func (cis KD6RMX) SetOutputFrequency(freq float32) error {
 	return nil
 }
 
-func (cis KD6RMX) PixelOutputFormat(conf string) error {
+func (cis Sensor) PixelOutputFormat(conf string) error {
 	result, err := cis.sendCommand("OC", conf)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (cis KD6RMX) PixelOutputFormat(conf string) error {
 	return nil
 }
 
-func (cis KD6RMX) Resolution(res int) error {
+func (cis Sensor) Resolution(res int) error {
 	var param string
 	switch res {
 	case 600:
@@ -141,7 +141,7 @@ func (cis KD6RMX) Resolution(res int) error {
 	return nil
 }
 
-func (cis KD6RMX) ExternalSync() error {
+func (cis Sensor) ExternalSync() error {
 	result, err := cis.sendCommand("SS", "01")
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (cis KD6RMX) ExternalSync() error {
 	return nil
 }
 
-func (cis KD6RMX) InternalSync(upper, lower string) error {
+func (cis Sensor) InternalSync(upper, lower string) error {
 	if len(upper) != 2 || len(lower) != 2 {
 		errors.New("invalid upper sync value")
 	}
@@ -168,7 +168,7 @@ func (cis KD6RMX) InternalSync(upper, lower string) error {
 	return nil
 }
 
-func (cis KD6RMX) LoadSettings(preset string) error {
+func (cis Sensor) LoadSettings(preset string) error {
 	var val string
 	switch preset {
 	case "0", "1", "2", "3":
@@ -190,7 +190,7 @@ func (cis KD6RMX) LoadSettings(preset string) error {
 	return nil
 }
 
-func (cis KD6RMX) SaveSettings(preset string) error {
+func (cis Sensor) SaveSettings(preset string) error {
 	var val string
 	switch preset {
 	case "1", "2", "3":
@@ -212,7 +212,7 @@ func (cis KD6RMX) SaveSettings(preset string) error {
 	return nil
 }
 
-func (cis KD6RMX) DarkCorrectionEnabled(on bool) error {
+func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
@@ -228,7 +228,7 @@ func (cis KD6RMX) DarkCorrectionEnabled(on bool) error {
 	return nil
 }
 
-func (cis KD6RMX) LightControl(a, b bool) error {
+func (cis Sensor) LightControl(a, b bool) error {
 	var param string
 	switch {
 	case a && b:
@@ -251,7 +251,7 @@ func (cis KD6RMX) LightControl(a, b bool) error {
 	return nil
 }
 
-func (cis KD6RMX) WhiteCorrectionEnabled(on bool) error {
+func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
@@ -267,7 +267,7 @@ func (cis KD6RMX) WhiteCorrectionEnabled(on bool) error {
 	return nil
 }
 
-func (cis KD6RMX) PerformWhiteCorrection() error {
+func (cis Sensor) PerformWhiteCorrection() error {
 	result, err := cis.sendCommand("WC", "21")
 	if err != nil {
 		return err
@@ -278,7 +278,7 @@ func (cis KD6RMX) PerformWhiteCorrection() error {
 	return nil
 }
 
-func (cis KD6RMX) WhiteCorrectionTarget(target int) error {
+func (cis Sensor) WhiteCorrectionTarget(target int) error {
 	if target > 255 {
 		return errors.New("invalid white correction target")
 	}
@@ -294,7 +294,7 @@ func (cis KD6RMX) WhiteCorrectionTarget(target int) error {
 	return nil
 }
 
-func (cis KD6RMX) GainAmplifierEnabled(on bool) error {
+func (cis Sensor) GainAmplifierEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
@@ -304,7 +304,7 @@ func (cis KD6RMX) GainAmplifierEnabled(on bool) error {
 	return err
 }
 
-func (cis KD6RMX) GainAmplifierLevel(gain int) error {
+func (cis Sensor) GainAmplifierLevel(gain int) error {
 	if gain > 3071 {
 		return errors.New("invalid gain level")
 	}
@@ -320,7 +320,7 @@ func (cis KD6RMX) GainAmplifierLevel(gain int) error {
 	return nil
 }
 
-func (cis KD6RMX) YCorrectionEnabled(on bool) error {
+func (cis Sensor) YCorrectionEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
@@ -336,7 +336,7 @@ func (cis KD6RMX) YCorrectionEnabled(on bool) error {
 	return nil
 }
 
-func (cis KD6RMX) TestPatternEnabled(on bool) error {
+func (cis Sensor) TestPatternEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
@@ -352,7 +352,7 @@ func (cis KD6RMX) TestPatternEnabled(on bool) error {
 	return nil
 }
 
-func (cis KD6RMX) InterpolationEnabled(on bool) error {
+func (cis Sensor) InterpolationEnabled(on bool) error {
 	var param = "40"
 	if on {
 		param = "41"
@@ -368,7 +368,7 @@ func (cis KD6RMX) InterpolationEnabled(on bool) error {
 	return nil
 }
 
-func (cis KD6RMX) SoftwareReset() error {
+func (cis Sensor) SoftwareReset() error {
 	result, err := cis.sendCommand("SR", "21")
 	if err != nil {
 		return err
@@ -390,7 +390,7 @@ func (cis KD6RMX) SoftwareReset() error {
 	return nil
 }
 
-func (cis KD6RMX) sendCommand(cmd string, params string) (string, error) {
+func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 	f, err := os.OpenFile(cis.Port, os.O_RDWR|os.O_APPEND, 0777)
 	if err != nil {
 		return "", fmt.Errorf("error opening control port: %v", err)
