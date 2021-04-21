@@ -411,6 +411,32 @@ func (cis Sensor) LEDControl(a, b bool, pulsedivider int) error {
 	return nil
 }
 
+func (cis Sensor) LEDDutyCycle(led string, duty int) error {
+	var ls string
+	switch led {
+	case "a", "A":
+		ls = "20"
+	case "b", "B":
+		ls = "40"
+	default:
+		return errors.New("invalid LED for duty cycle")
+	}
+
+	if duty < 0 || duty > 0xFFFF {
+		return errors.New("invalid duty cycle value")
+	}
+	param := fmt.Sprintf("%s%000X", ls, duty)
+
+	result, err := cis.sendCommand("LC", param)
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from LEDDutyCycle")
+	}
+	return nil
+}
+
 func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 	var param = "00"
 	if on {
@@ -423,6 +449,17 @@ func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 	}
 	if len(result) < 5 {
 		return errors.New("invalid result from DarkCorrection")
+	}
+	return nil
+}
+
+func (cis Sensor) PerformDarkCorrection() error {
+	result, err := cis.sendCommand("DC", "21")
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from PerformDarkCorrection")
 	}
 	return nil
 }
@@ -481,16 +518,26 @@ func (cis Sensor) GainAmplifierEnabled(on bool) error {
 }
 
 func (cis Sensor) GainAmplifierLevel(gain int) error {
-	if gain > 3071 {
-		return errors.New("invalid gain level")
+	var param string
+	switch {
+	case gain > 3071:
+		return errors.New("invalid positive gain level")
+	case gain >= 0:
+		// positive gain
+		param = fmt.Sprintf("20%000X", gain)
+	case gain < -1027:
+		return errors.New("invalid negative gain level")
+	case gain < 0:
+		// negative gain
+		param = fmt.Sprintf("21%000X", gain)
 	}
 
-	result, err := cis.sendCommand("PG20", fmt.Sprintf("%000X", gain))
+	result, err := cis.sendCommand("PG", param)
 	if err != nil {
 		return err
 	}
 	if len(result) < 5 {
-		return errors.New("invalid result from WhiteCorrectionTarget")
+		return errors.New("invalid result from GainAmplifierLevel")
 	}
 
 	return nil
@@ -502,12 +549,12 @@ func (cis Sensor) YCorrectionEnabled(on bool) error {
 		param = "01"
 	}
 
-	result, err := cis.sendCommand("GC", param)
+	result, err := cis.sendCommand("OC", param)
 	if err != nil {
 		return err
 	}
 	if len(result) < 5 {
-		return errors.New("invalid result from YCorrection")
+		return errors.New("invalid result from YCorrectionEnable")
 	}
 	return nil
 }
@@ -516,6 +563,29 @@ func (cis Sensor) TestPatternEnabled(on bool) error {
 	var param = "00"
 	if on {
 		param = "01"
+	}
+
+	result, err := cis.sendCommand("TP", param)
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from TestPattern")
+	}
+	return nil
+}
+
+type TestPatternType int
+
+const (
+	TestPatternStripe TestPatternType = iota
+	TestPatternRamp
+)
+
+func (cis Sensor) TestPattern(pattern TestPatternType) error {
+	var param = "20"
+	if pattern == TestPatternRamp {
+		param = "21"
 	}
 
 	result, err := cis.sendCommand("TP", param)
