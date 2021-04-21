@@ -13,6 +13,7 @@ type Sensor struct {
 	Port string
 }
 
+// CommunicationSpeed sets the communcation speed.
 func (cis Sensor) CommunicationSpeed(baud int) error {
 	var param string
 	switch baud {
@@ -30,7 +31,8 @@ func (cis Sensor) CommunicationSpeed(baud int) error {
 	return err
 }
 
-func (cis Sensor) SetOutputFrequency(freq float32) error {
+// OutputFrequency sets the output frequency.
+func (cis Sensor) OutputFrequency(freq float32) error {
 	var val string
 	switch freq {
 	case 48.0:
@@ -105,8 +107,114 @@ func (cis Sensor) SetOutputFrequency(freq float32) error {
 	return nil
 }
 
-func (cis Sensor) PixelOutputFormat(conf string) error {
-	result, err := cis.sendCommand("OC", conf)
+type PixelOutputBits int
+type PixelOutputInterface int
+type PixelOutputConfig int
+
+const (
+	PixelOutputBits10 PixelOutputBits = iota
+	PixelOutputBits8
+)
+
+const (
+	PixelOutputSerial PixelOutputInterface = iota
+	PixelOutputParallel
+)
+
+const (
+	PixelOutputBase PixelOutputConfig = iota
+	PixelOutputMedium
+)
+
+// PixelOutputFormat sets the output format for pixels.
+//
+// For example:
+//
+//		cis.PixelOutputFormat(kd6rmx.PixelOutputBits10, kd6rmx.PixelOutputSerial, kd6rmx.PixelOutputBase, 1)
+//
+func (cis Sensor) PixelOutputFormat(bits PixelOutputBits, i PixelOutputInterface, conf PixelOutputConfig, number int) error {
+	var param string
+	switch bits {
+	case PixelOutputBits10:
+		switch i {
+		case PixelOutputSerial:
+			switch conf {
+			case PixelOutputBase:
+				if number == 1 {
+					param = "00"
+				}
+			case PixelOutputMedium:
+				switch number {
+				case 1:
+					param = "01"
+				case 2:
+					param = "02"
+				case 3:
+					param = "03"
+				}
+			}
+
+		case PixelOutputParallel:
+			switch conf {
+			case PixelOutputBase:
+				if number == 1 {
+					param = "04"
+				}
+			case PixelOutputMedium:
+				switch number {
+				case 1:
+					param = "05"
+				case 2:
+					param = "06"
+				case 3:
+					param = "07"
+				}
+			}
+
+		}
+	case PixelOutputBits8:
+		switch i {
+		case PixelOutputSerial:
+			switch conf {
+			case PixelOutputBase:
+				if number == 1 {
+					param = "08"
+				}
+			case PixelOutputMedium:
+				switch number {
+				case 1:
+					param = "09"
+				case 2:
+					param = "0A"
+				case 3:
+					param = "0B"
+				}
+			}
+
+		case PixelOutputParallel:
+			switch conf {
+			case PixelOutputBase:
+				if number == 1 {
+					param = "0C"
+				}
+			case PixelOutputMedium:
+				switch number {
+				case 1:
+					param = "0D"
+				case 2:
+					param = "0E"
+				case 3:
+					param = "0F"
+				}
+			}
+		}
+	}
+
+	if param == "" {
+		return errors.New("invalid params for PixelOutputFormat")
+	}
+
+	result, err := cis.sendCommand("OC", param)
 	if err != nil {
 		return err
 	}
@@ -116,7 +224,42 @@ func (cis Sensor) PixelOutputFormat(conf string) error {
 	return nil
 }
 
-func (cis Sensor) Resolution(res int) error {
+// PixelOverlap turns on/off the pixel overlap. Only to be used on CIS with 2 or 3 sensors.
+func (cis Sensor) PixelOverlap(on bool) error {
+	var param = "20"
+	if on {
+		param = "21"
+	}
+	result, err := cis.sendCommand("OC", param)
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from PixelOverlap")
+	}
+	return nil
+}
+
+// PixelInterpolation turns on/off pixel interpolation.
+func (cis Sensor) PixelInterpolation(on bool) error {
+	var param = "40"
+	if on {
+		param = "41"
+	}
+
+	result, err := cis.sendCommand("OC", param)
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from PixelInterpolation")
+	}
+	return nil
+}
+
+// PixelResolution sets the resolution for the sensor.
+// Valid resolutions are 600, 300, 150, or 75 dpi.
+func (cis Sensor) PixelResolution(res int) error {
 	var param string
 	switch res {
 	case 600:
@@ -141,6 +284,7 @@ func (cis Sensor) Resolution(res int) error {
 	return nil
 }
 
+// ExternalSync turns on the external sync.
 func (cis Sensor) ExternalSync() error {
 	result, err := cis.sendCommand("SS", "01")
 	if err != nil {
@@ -152,12 +296,14 @@ func (cis Sensor) ExternalSync() error {
 	return nil
 }
 
-func (cis Sensor) InternalSync(upper, lower string) error {
-	if len(upper) != 2 || len(lower) != 2 {
-		errors.New("invalid upper sync value")
+// InternalSync turns on the internal sync.
+func (cis Sensor) InternalSync(val int) error {
+	if val < 1 || val > 0xffff {
+		errors.New("invalid sync clock value")
 	}
 
-	result, err := cis.sendCommand("SS", "00"+upper+lower)
+	param := fmt.Sprintf("00%000X", val)
+	result, err := cis.sendCommand("SS", param)
 	if err != nil {
 		return err
 	}
@@ -168,46 +314,99 @@ func (cis Sensor) InternalSync(upper, lower string) error {
 	return nil
 }
 
-func (cis Sensor) LoadSettings(preset string) error {
-	var val string
-	switch preset {
-	case "0", "1", "2", "3":
-		val = "0" + preset
-	default:
-		return errors.New("invalid preset for LoadSettings: " + preset)
+// LoadSettings loads the sensor's active settings with one of the memory presets.
+//
+// Valid presets are:
+// 		0 (factory defaults)
+// 		1 (user settings 1)
+// 		2 (user settings 2)
+// 		3 (user settings 3)
+func (cis Sensor) LoadSettings(preset int) error {
+	if preset < 0 || preset > 4 {
+		return errors.New("invalid preset for LoadSettings")
 	}
 
-	result, err := cis.sendCommand("DT", val)
+	param := fmt.Sprintf("%0X", preset)
+	result, err := cis.sendCommand("DT", param)
 	if err != nil {
 		return err
 	}
 	if len(result) < 5 {
 		return errors.New("invalid result from LoadSettings")
 	}
-	if string(result[3:4]) != preset {
+	if string(result[3:4]) != param {
 		return errors.New("invalid result code from LoadSettings: " + string(result))
 	}
 	return nil
 }
 
-func (cis Sensor) SaveSettings(preset string) error {
-	var val string
-	switch preset {
-	case "1", "2", "3":
-		val = "8" + preset
-	default:
-		return errors.New("invalid preset for SaveSettings: " + preset)
+// SaveSettings saves the sensor's active settings to one of the memory presets.
+//
+// Valid presets are:
+// 		1 (user settings 1)
+// 		2 (user settings 2)
+// 		3 (user settings 3)
+func (cis Sensor) SaveSettings(preset int) error {
+	if preset < 1 || preset > 4 {
+		return errors.New("invalid preset for SaveSettings")
 	}
 
-	result, err := cis.sendCommand("DT", val)
+	param := fmt.Sprintf("0%X", preset)
+	result, err := cis.sendCommand("DT", param)
 	if err != nil {
 		return err
 	}
 	if len(result) < 5 {
 		return errors.New("invalid result from SaveSettings")
 	}
-	if string(result[2:4]) != preset {
+	if string(result[2:4]) != param {
 		return errors.New("invalid result code from SaveSettings: " + string(result))
+	}
+	return nil
+}
+
+// LEDControl sets the LED settings. You can do the following:
+// Turn on/off the A and B LEDS individually.
+// Set the pulse divider to be used for both LEDS so they are:
+//		1 = on all of the time
+//		2 = on one half of the time
+//		4 = on one quarter of the time
+//		8 = on one eighth of the time
+func (cis Sensor) LEDControl(a, b bool, pulsedivider int) error {
+	var pd int
+	switch pulsedivider {
+	case 1:
+		pd = 0
+	case 2:
+		pd = 1
+	case 4:
+		pd = 2
+	case 8:
+		pd = 3
+	default:
+		return errors.New("pulsedivider must be 1, 2, 4, or 8")
+	}
+
+	var val int
+	switch {
+	case a && b:
+		val = 3 + (pd * 4)
+	case a:
+		val = 1 + (pd * 4)
+	case b:
+		val = 2 + (pd * 4)
+	default:
+		// defaults to both off
+		val = 0 + (pd * 4)
+	}
+
+	param := fmt.Sprintf("%0X", val)
+	result, err := cis.sendCommand("LC", param)
+	if err != nil {
+		return err
+	}
+	if len(result) < 5 {
+		return errors.New("invalid result from LEDControl")
 	}
 	return nil
 }
@@ -224,29 +423,6 @@ func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 	}
 	if len(result) < 5 {
 		return errors.New("invalid result from DarkCorrection")
-	}
-	return nil
-}
-
-func (cis Sensor) LightControl(a, b bool) error {
-	var param string
-	switch {
-	case a && b:
-		param = "03"
-	case a:
-		param = "01"
-	case b:
-		param = "02"
-	default:
-		param = "00"
-	}
-
-	result, err := cis.sendCommand("LC", param)
-	if err != nil {
-		return err
-	}
-	if len(result) < 5 {
-		return errors.New("invalid result from LightControl")
 	}
 	return nil
 }
@@ -348,22 +524,6 @@ func (cis Sensor) TestPatternEnabled(on bool) error {
 	}
 	if len(result) < 5 {
 		return errors.New("invalid result from TestPattern")
-	}
-	return nil
-}
-
-func (cis Sensor) InterpolationEnabled(on bool) error {
-	var param = "40"
-	if on {
-		param = "41"
-	}
-
-	result, err := cis.sendCommand("OC", param)
-	if err != nil {
-		return err
-	}
-	if len(result) < 5 {
-		return errors.New("invalid result from Interpolation")
 	}
 	return nil
 }
