@@ -8,7 +8,17 @@ For information about this sensor contact Mitsubishi Electric.
 
 ## API
 
+The API is meant to be used in Go programs. You would normally add it to your own project using Go modules like this:
+
+```shell
+go get github.com/northvolt/go-kd6rmx
+```
+
 ```go
+import "github.com/northvolt/go-kd6rmx"
+
+...
+
 // initialize sensor
 cis := kd6rmx.Sensor{Port: "/dev/your-port-here"}
 
@@ -28,10 +38,19 @@ cis.SaveSettings(2)
 
 `kd6ctl` is a command line interface tool to allow for user configuration.
 
-### How to build
+### How to install
+
+First you must obtain the git repo, and change into the new directory:
 
 ```shell
-go build -o build/kd6ctl ./cmd/kd6ctl
+git clone https://github.com/northvolt/go-kd6rmx.git
+cd go-kd6rmx
+```
+
+Now you can install the CLI
+
+```shell
+go install ./cmd/kd6ctl
 ```
 
 ### How to use
@@ -68,4 +87,30 @@ kd6ctl format 10 serial base
 kd6ctl interpolation on
 kd6ctl dark on
 kd6ctl white on
+```
+
+### How to build binaries for different platforms
+
+#### Windows
+
+```shell
+env GOOS=windows GOARCH=amd64 go build -o build/kd6ctl.exe ./cmd/kd6ctl
+```
+
+#### Linux
+
+```shell
+env GOOS=linux GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+```
+
+#### macOS - Intel
+
+```shell
+env GOOS=darwin GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+```
+
+#### macOS - M1
+
+```shell
+env GOOS=darwin GOARCH=arm64 go build -o build/kd6ctl ./cmd/kd6ctl
 ```
