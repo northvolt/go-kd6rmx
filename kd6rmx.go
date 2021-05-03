@@ -3,8 +3,8 @@ package kd6rmx
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -101,10 +101,7 @@ func (cis Sensor) OutputFrequency(freq float32) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from SetOutputFrequency")
-	}
-	return nil
+	return checkError("SetOutputFrequency", result)
 }
 
 type PixelOutputBits int
@@ -218,10 +215,7 @@ func (cis Sensor) PixelOutputFormat(bits PixelOutputBits, i PixelOutputInterface
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from PixelOutputFormat")
-	}
-	return nil
+	return checkError("PixelOutputFormat", result)
 }
 
 // PixelOverlap turns on/off the pixel overlap. Only to be used on CIS with 2 or 3 sensors.
@@ -234,10 +228,7 @@ func (cis Sensor) PixelOverlap(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from PixelOverlap")
-	}
-	return nil
+	return checkError("PixelOverlap", result)
 }
 
 // PixelInterpolation turns on/off pixel interpolation.
@@ -251,10 +242,7 @@ func (cis Sensor) PixelInterpolation(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from PixelInterpolation")
-	}
-	return nil
+	return checkError("PixelInterpolation", result)
 }
 
 // PixelResolution sets the resolution for the sensor.
@@ -278,10 +266,7 @@ func (cis Sensor) PixelResolution(res int) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from Resolution")
-	}
-	return nil
+	return checkError("PixelResolution", result)
 }
 
 // ExternalSync turns on the external sync.
@@ -290,10 +275,7 @@ func (cis Sensor) ExternalSync() error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from ExternalSync")
-	}
-	return nil
+	return checkError("ExternalSync", result)
 }
 
 // InternalSync turns on the internal sync.
@@ -326,18 +308,12 @@ func (cis Sensor) LoadSettings(preset int) error {
 		return errors.New("invalid preset for LoadSettings")
 	}
 
-	param := fmt.Sprintf("%0X", preset)
+	param := fmt.Sprintf("%02X", preset)
 	result, err := cis.sendCommand("DT", param)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from LoadSettings")
-	}
-	if string(result[3:4]) != param {
-		return errors.New("invalid result code from LoadSettings: " + string(result))
-	}
-	return nil
+	return checkError("LoadSettings", result)
 }
 
 // SaveSettings saves the sensor's active settings to one of the memory presets.
@@ -351,18 +327,12 @@ func (cis Sensor) SaveSettings(preset int) error {
 		return errors.New("invalid preset for SaveSettings")
 	}
 
-	param := fmt.Sprintf("0%X", preset)
+	param := fmt.Sprintf("%02X", preset)
 	result, err := cis.sendCommand("DT", param)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from SaveSettings")
-	}
-	if string(result[2:4]) != param {
-		return errors.New("invalid result code from SaveSettings: " + string(result))
-	}
-	return nil
+	return checkError("SaveSettings", result)
 }
 
 // LEDControl sets the LED settings. You can do the following:
@@ -400,15 +370,12 @@ func (cis Sensor) LEDControl(a, b bool, pulsedivider int) error {
 		val = 0 + (pd * 4)
 	}
 
-	param := fmt.Sprintf("%0X", val)
+	param := fmt.Sprintf("%02X", val)
 	result, err := cis.sendCommand("LC", param)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from LEDControl")
-	}
-	return nil
+	return checkError("LEDControl", result)
 }
 
 func (cis Sensor) LEDDutyCycle(led string, duty int) error {
@@ -425,16 +392,13 @@ func (cis Sensor) LEDDutyCycle(led string, duty int) error {
 	if duty < 0 || duty > 0xFFFF {
 		return errors.New("invalid duty cycle value")
 	}
-	param := fmt.Sprintf("%s%000X", ls, duty)
+	param := fmt.Sprintf("%s%04X", ls, duty)
 
 	result, err := cis.sendCommand("LC", param)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from LEDDutyCycle")
-	}
-	return nil
+	return checkError("LEDDutyCycle", result)
 }
 
 func (cis Sensor) DarkCorrectionEnabled(on bool) error {
@@ -447,10 +411,7 @@ func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from DarkCorrection")
-	}
-	return nil
+	return checkError("DarkCorrectionEnabled", result)
 }
 
 func (cis Sensor) PerformDarkCorrection() error {
@@ -458,10 +419,7 @@ func (cis Sensor) PerformDarkCorrection() error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from PerformDarkCorrection")
-	}
-	return nil
+	return checkError("PerformDarkCorrection", result)
 }
 
 func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
@@ -474,10 +432,7 @@ func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from WhiteCorrection")
-	}
-	return nil
+	return checkError("WhiteCorrectionEnabled", result)
 }
 
 func (cis Sensor) PerformWhiteCorrection() error {
@@ -485,26 +440,20 @@ func (cis Sensor) PerformWhiteCorrection() error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from WhiteCorrection")
-	}
-	return nil
+	return checkError("PerformWhiteCorrection", result)
 }
 
 func (cis Sensor) WhiteCorrectionTarget(target int) error {
 	if target > 255 {
 		return errors.New("invalid white correction target")
 	}
-	h := fmt.Sprintf("%0X", target)
+	h := fmt.Sprintf("%02X", target)
 
 	result, err := cis.sendCommand("WC40", h)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from WhiteCorrectionTarget")
-	}
-	return nil
+	return checkError("WhiteCorrectionTarget", result)
 }
 
 func (cis Sensor) GainAmplifierEnabled(on bool) error {
@@ -524,23 +473,19 @@ func (cis Sensor) GainAmplifierLevel(gain int) error {
 		return errors.New("invalid positive gain level")
 	case gain >= 0:
 		// positive gain
-		param = fmt.Sprintf("20%000X", gain)
+		param = fmt.Sprintf("20%04X", gain)
 	case gain < -1027:
 		return errors.New("invalid negative gain level")
 	case gain < 0:
 		// negative gain
-		param = fmt.Sprintf("21%000X", gain)
+		param = fmt.Sprintf("21%04X", gain)
 	}
 
 	result, err := cis.sendCommand("PG", param)
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from GainAmplifierLevel")
-	}
-
-	return nil
+	return checkError("GainAmplifierLevel", result)
 }
 
 func (cis Sensor) YCorrectionEnabled(on bool) error {
@@ -553,10 +498,7 @@ func (cis Sensor) YCorrectionEnabled(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from YCorrectionEnable")
-	}
-	return nil
+	return checkError("YCorrectionEnabled", result)
 }
 
 func (cis Sensor) TestPatternEnabled(on bool) error {
@@ -569,10 +511,7 @@ func (cis Sensor) TestPatternEnabled(on bool) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from TestPattern")
-	}
-	return nil
+	return checkError("TestPatternEnabled", result)
 }
 
 type TestPatternType int
@@ -592,10 +531,7 @@ func (cis Sensor) TestPattern(pattern TestPatternType) error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from TestPattern")
-	}
-	return nil
+	return checkError("TestPattern", result)
 }
 
 func (cis Sensor) SoftwareReset() error {
@@ -603,7 +539,7 @@ func (cis Sensor) SoftwareReset() error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
+	if len(result) < 4 {
 		return errors.New("invalid result from SoftwareReset")
 	}
 
@@ -613,11 +549,7 @@ func (cis Sensor) SoftwareReset() error {
 	if err != nil {
 		return err
 	}
-	if len(result) < 5 {
-		return errors.New("invalid result from SoftwareReset")
-	}
-
-	return nil
+	return checkError("SoftwareReset", result)
 }
 
 func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
@@ -633,10 +565,31 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 	}
 
 	buf := make([]byte, 5)
-	_, err = io.ReadFull(f, buf)
-	if err != nil {
-		return "", fmt.Errorf("error receiving result from command: %v", err)
+	var result string
+	start := time.Now()
+	for {
+		n, err := f.Read(buf)
+		if err != nil {
+			return "", fmt.Errorf("error receiving result from command: %v", err)
+		}
+
+		result += string(buf[:n])
+		switch {
+		case result[len(result)-1] == '\r':
+			result = strings.Replace(result, "\r", "", -1)
+			return result, nil
+		case n == 0:
+			return "", fmt.Errorf("no data in result from command")
+		case time.Since(start) > time.Second*10:
+			return "", fmt.Errorf("timeout receiving result from command")
+		}
+	}
+}
+
+func checkError(funcname, result string) error {
+	if len(result) < 4 {
+		return fmt.Errorf("invalid result from %s: %s", funcname, result)
 	}
 
-	return string(buf), nil
+	return nil
 }
