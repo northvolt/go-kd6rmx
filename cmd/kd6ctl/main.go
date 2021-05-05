@@ -197,31 +197,37 @@ func main() {
 		},
 	}
 
-	ledson := &ffcli.Command{
-		Name:       "on",
-		ShortUsage: "kd6ctl led on",
-		ShortHelp:  "Turn on LED.",
-		Exec: func(_ context.Context, args []string) error {
-			return flag.ErrHelp
-		},
-	}
-
-	ledsoff := &ffcli.Command{
-		Name:       "off",
-		ShortUsage: "kd6ctl led off",
-		ShortHelp:  "Turn on LED.",
-		Exec: func(_ context.Context, args []string) error {
-			return flag.ErrHelp
-		},
-	}
-
 	leds := &ffcli.Command{
-		Name:        "led",
-		ShortUsage:  "kd6ctl led <arg>",
-		ShortHelp:   "Sets LED on sensor.",
-		Subcommands: []*ffcli.Command{ledson, ledsoff},
+		Name:       "led",
+		ShortUsage: "kd6ctl led <A/B/AB> <on/off> [pulse]",
+		ShortHelp:  "Sets LEDs on sensor on or off.",
 		Exec: func(_ context.Context, args []string) error {
-			return flag.ErrHelp
+			if len(args) < 2 {
+				return fmt.Errorf("invalid led command params")
+			}
+
+			leds := args[0]
+			if len(leds) == 0 {
+				return fmt.Errorf("invalid leds")
+			}
+
+			var on bool
+			switch args[1] {
+			case "on":
+				on = true
+			case "off":
+				on = false
+			default:
+				return fmt.Errorf("invalid led setting, must be on or off")
+			}
+
+			var pulse int
+			if len(args) < 3 {
+				pulse = 1
+			}
+
+			cis := kd6rmx.Sensor{Port: *port}
+			return cis.LEDControl(leds, on, pulse)
 		},
 	}
 

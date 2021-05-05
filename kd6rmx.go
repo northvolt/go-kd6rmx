@@ -342,7 +342,7 @@ func (cis Sensor) SaveSettings(preset int) error {
 //		2 = on one half of the time
 //		4 = on one quarter of the time
 //		8 = on one eighth of the time
-func (cis Sensor) LEDControl(a, b bool, pulsedivider int) error {
+func (cis Sensor) LEDControl(leds string, on bool, pulsedivider int) error {
 	var pd int
 	switch pulsedivider {
 	case 1:
@@ -358,16 +358,21 @@ func (cis Sensor) LEDControl(a, b bool, pulsedivider int) error {
 	}
 
 	var val int
-	switch {
-	case a && b:
-		val = 3 + (pd * 4)
-	case a:
-		val = 1 + (pd * 4)
-	case b:
-		val = 2 + (pd * 4)
-	default:
-		// defaults to both off
-		val = 0 + (pd * 4)
+	if on {
+		switch leds {
+		case "ab", "AB":
+			val = 3 + (pd * 4)
+		case "a", "A":
+			val = 1 + (pd * 4)
+		case "b", "B":
+			val = 2 + (pd * 4)
+		default:
+			return errors.New("invalid LEDs, must be 'A', 'B', or 'AB'")
+		}
+	} else {
+		// turn both off.
+		// TODO: turn back on anything that was on and we did not explicitly turn off.
+		val = 0
 	}
 
 	param := fmt.Sprintf("%02X", val)
