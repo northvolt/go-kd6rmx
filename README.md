@@ -71,8 +71,8 @@ SUBCOMMANDS
   frequency      Change output frequency (in Mhz).
   format         Change output format.
   interpolation  Set interpolation on/off.
-  dark           Dark correction on/off.
-  white          White correction on/off.
+  dark           Dark correction on/off/adjust.
+  white          White correction on/off/adjust/target.
   led            Sets LEDs on sensor on or off.
 
 FLAGS
