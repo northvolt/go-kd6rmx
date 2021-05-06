@@ -73,7 +73,7 @@ SUBCOMMANDS
   interpolation  Set interpolation on/off.
   dark           Dark correction on/off.
   white          White correction on/off.
-  led            Sets LED on sensor.
+  led            Sets LEDs on sensor on or off.
 
 FLAGS
   -p /dev/corser/XtiumCLMX41_s0  port of KD6RMX sensor to use
@@ -87,6 +87,7 @@ kd6ctl format 10 serial base
 kd6ctl interpolation on
 kd6ctl dark on
 kd6ctl white on
+kd6ctl led ab on
 ```
 
 ### How to build binaries for different platforms
