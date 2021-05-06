@@ -151,49 +151,62 @@ func main() {
 
 	dark := &ffcli.Command{
 		Name:       "dark",
-		ShortUsage: "kd6ctl dark <on/off>",
-		ShortHelp:  "Dark correction on/off.",
+		ShortUsage: "kd6ctl dark <on/off/adjust>",
+		ShortHelp:  "Dark correction on/off/adjust.",
 		Exec: func(_ context.Context, args []string) error {
-			if n := len(args); n != 1 {
-				return fmt.Errorf("dark correction must be either 'on' or 'off'")
-			}
-
-			var on bool
-			switch args[0] {
-			case "on":
-				on = true
-			case "off":
-				on = false
-			default:
-				return fmt.Errorf("invalid dark correction, must be on or off")
+			if n := len(args); n < 1 {
+				return fmt.Errorf("dark correction requires a subcommand: 'on', 'off', or 'adjust'")
 			}
 
 			cis := kd6rmx.Sensor{Port: *port}
-			return cis.DarkCorrectionEnabled(on)
+
+			switch args[0] {
+			case "on":
+				return cis.DarkCorrectionEnabled(true)
+			case "off":
+				return cis.DarkCorrectionEnabled(false)
+			case "adjust":
+				return cis.PerformDarkCorrection()
+			default:
+				return fmt.Errorf("invalid dark correction subcommand, must be 'on', 'off', or 'adjust'")
+			}
 		},
 	}
 
 	white := &ffcli.Command{
 		Name:       "white",
-		ShortUsage: "kd6ctl white <on/off>",
-		ShortHelp:  "White correction on/off.",
+		ShortUsage: "kd6ctl white <on/off/adjust/target>",
+		ShortHelp:  "White correction on/off/adjust/target.",
 		Exec: func(_ context.Context, args []string) error {
-			if n := len(args); n != 1 {
-				return fmt.Errorf("white correction must be either 'on' or 'off'")
-			}
-
-			var on bool
-			switch args[0] {
-			case "on":
-				on = true
-			case "off":
-				on = false
-			default:
-				return fmt.Errorf("invalid white correction, must be on or off")
+			if n := len(args); n < 1 {
+				return fmt.Errorf("white correction requires a subcommand: 'on', 'off', 'adjust', or 'target'")
 			}
 
 			cis := kd6rmx.Sensor{Port: *port}
-			return cis.WhiteCorrectionEnabled(on)
+
+			switch args[0] {
+			case "on":
+				return cis.WhiteCorrectionEnabled(true)
+			case "off":
+				return cis.WhiteCorrectionEnabled(false)
+			case "adjust":
+				return cis.PerformWhiteCorrection()
+			case "target":
+				var target = 250
+				if len(args) < 2 {
+					fmt.Printf("no white correction target provided, using factory default of %d\n", target)
+				} else {
+					var err error
+					target, err = strconv.Atoi(args[1])
+					if err != nil {
+						return fmt.Errorf("invalid value for white correction target")
+					}
+					return cis.WhiteCorrectionTarget(target)
+				}
+				return cis.PerformWhiteCorrection()
+			default:
+				return fmt.Errorf("invalid white correction subcommand, must be 'on', 'off', 'adjust', or 'target'")
+			}
 		},
 	}
 
@@ -203,7 +216,7 @@ func main() {
 		ShortHelp:  "Sets LEDs on sensor on or off.",
 		Exec: func(_ context.Context, args []string) error {
 			if len(args) < 2 {
-				return fmt.Errorf("invalid led command params")
+				return fmt.Errorf("led command requires specific LEDs either 'a', 'b', 'ab'. You must also specify to set LEDs 'on' or 'off'")
 			}
 
 			leds := args[0]
