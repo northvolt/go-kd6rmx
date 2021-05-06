@@ -224,6 +224,12 @@ func main() {
 			var pulse int
 			if len(args) < 3 {
 				pulse = 1
+			} else {
+				var err error
+				pulse, err = strconv.Atoi(args[2])
+				if err != nil {
+					return err
+				}
 			}
 
 			cis := kd6rmx.Sensor{Port: *port}
