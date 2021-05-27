@@ -213,7 +213,7 @@ func main() {
 	leds := &ffcli.Command{
 		Name:       "led",
 		ShortUsage: "kd6ctl led <A/B/AB> <on/off> [pulse]",
-		ShortHelp:  "Sets LEDs on sensor on or off.",
+		ShortHelp:  "Turn sensor LEDs on or off.",
 		Exec: func(_ context.Context, args []string) error {
 			if len(args) < 2 {
 				return fmt.Errorf("led command requires specific LEDs either 'a', 'b', 'ab'. You must also specify to set LEDs 'on' or 'off'")
@@ -250,11 +250,35 @@ func main() {
 		},
 	}
 
+	duty := &ffcli.Command{
+		Name:       "duty",
+		ShortUsage: "kd6ctl duty <a/b> <duty>",
+		ShortHelp:  "Set LED duty illumination period (in microseconds).",
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) < 2 {
+				return fmt.Errorf("duty command requires specific LEDs either 'a' or 'b'. You must also specify the duty to set LEDs to")
+			}
+
+			led := args[0]
+			if led != "a" && led != "b" {
+				return fmt.Errorf("invalid led value. must be 'a' or 'b'")
+			}
+
+			duty, err := strconv.ParseFloat(args[1], 32)
+			if err != nil {
+				return err
+			}
+
+			cis := kd6rmx.Sensor{Port: *port}
+			return cis.LEDDutyCycle(led, float32(duty))
+		},
+	}
+
 	root := &ffcli.Command{
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{load, save, outputfreq, outputfmt, interp, dark, white, leds},
+		Subcommands: []*ffcli.Command{load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
