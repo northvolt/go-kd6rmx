@@ -19,6 +19,16 @@ func main() {
 		port        = rootFlagSet.String("p", "/dev/corser/XtiumCLMX41_s0", "port of KD6RMX sensor to use")
 	)
 
+	version := &ffcli.Command{
+		Name:       "version",
+		ShortUsage: "kd6ctl version",
+		ShortHelp:  "Show version of kd6ctl API.",
+		Exec: func(_ context.Context, args []string) error {
+			fmt.Println(kd6rmx.Version)
+			return nil
+		},
+	}
+
 	load := &ffcli.Command{
 		Name:       "load",
 		ShortUsage: "kd6ctl load <preset>",
@@ -278,7 +288,7 @@ func main() {
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
+		Subcommands: []*ffcli.Command{version, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
