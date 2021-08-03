@@ -384,8 +384,8 @@ func (cis Sensor) LEDControl(leds string, on bool, pulsedivider int) error {
 }
 
 // LEDDutyCycle sets the duty cycle for each LED separately.
-// The value for duty represents the number of microseconds.
-func (cis Sensor) LEDDutyCycle(led string, duty float32) error {
+// The value for duty represents the raw value of register LC.
+func (cis Sensor) LEDDutyCycle(led string, duty int) error {
 	var ls string
 	switch led {
 	case "a", "A":
@@ -397,9 +397,9 @@ func (cis Sensor) LEDDutyCycle(led string, duty float32) error {
 	}
 
 	if duty <= 0 || duty >= 4096 {
-		return errors.New("invalid duty cycle value")
+		return errors.New("invalid duty cycle register value")
 	}
-	param := fmt.Sprintf("%s%04X", ls, duty*16)
+	param := fmt.Sprintf("%s%04X", ls, duty)
 
 	result, err := cis.sendCommand("LC", param)
 	if err != nil {
