@@ -90,28 +90,29 @@ kd6ctl white on
 kd6ctl led ab on
 ```
 
-### How to build binaries for different platforms
-
-#### Windows
+### How to build binaries
 
 ```shell
-env GOOS=windows GOARCH=amd64 go build -o build/kd6ctl.exe ./cmd/kd6ctl
+make build
 ```
 
-#### Linux
+### How to install binaries
 
 ```shell
-env GOOS=linux GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+make install
 ```
 
-#### macOS - Intel
+### How to tag and release binaries
 
 ```shell
-env GOOS=darwin GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+make release bump=major
 ```
+The automatic version format is vX.Y.Z
 
-#### macOS - M1
+bump=major creates a tag with increament in X from previous tag.
 
-```shell
-env GOOS=darwin GOARCH=arm64 go build -o build/kd6ctl ./cmd/kd6ctl
-```
+bump=minor creates a tag with increament in Y from previous tag.
+
+bump=which shows the current tag.
+
+If bump is not specified, a tag with increment in Z is created.
