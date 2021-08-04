@@ -327,7 +327,7 @@ func (cis Sensor) SaveSettings(preset int) error {
 		return errors.New("invalid preset for SaveSettings")
 	}
 
-	param := fmt.Sprintf("%02X", preset)
+	param := fmt.Sprintf("%02X", 0x80+preset)
 	result, err := cis.sendCommand("DT", param)
 	if err != nil {
 		return err
