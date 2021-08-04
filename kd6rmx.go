@@ -600,3 +600,33 @@ func checkError(funcname, result string) error {
 
 	return nil
 }
+
+func (cis Sensor) ReadRegister(register string) {
+	cis.ReadRegisterWithVal(register, "80")
+}
+
+func (cis Sensor) ReadRegisterWithVal(register, val string) {
+	result, err := cis.sendCommand(register, val)
+
+	fmt.Printf("Reading %s register with parameter 0x%s ", register, val)
+
+	if err == nil {
+		if result[:2] == "00" {
+			fmt.Printf("Reading SUCCESS. ")
+		} else {
+			fmt.Printf("Reading FAIL. ")
+		}
+
+		fmt.Print("Response from CIS ")
+
+		for index := 0; index < len(result); index += 2 {
+			fmt.Printf("0x%s ", result[index:index+2])
+		}
+
+		fmt.Println(" ")
+
+	} else {
+		fmt.Printf("Communication with CIS failed. Error reading register %s\n", register)
+	}
+
+}
