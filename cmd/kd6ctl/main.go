@@ -284,11 +284,37 @@ func main() {
 		},
 	}
 
+	dumpreg := &ffcli.Command{
+		Name:       "dumpreg",
+		ShortUsage: "kd6ctl dumpreg",
+		ShortHelp:  "Dump the register values of CIS.",
+		Exec: func(_ context.Context, args []string) error {
+
+			cis := kd6rmx.Sensor{Port: *port}
+
+			cis.ReadRegister("BR")
+			cis.ReadRegister("OF")
+			cis.ReadRegister("OC")
+			cis.ReadRegister("RC")
+			cis.ReadRegister("SS")
+			cis.ReadRegister("DC")
+			cis.ReadRegister("LC")
+			cis.ReadRegisterWithVal("LC", "A0")
+			cis.ReadRegisterWithVal("LC", "C0")
+			cis.ReadRegister("WC")
+			cis.ReadRegister("PG")
+			cis.ReadRegister("GC")
+			cis.ReadRegister("TP")
+
+			return nil
+		},
+	}
+
 	root := &ffcli.Command{
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{version, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
+		Subcommands: []*ffcli.Command{version, dumpreg, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
