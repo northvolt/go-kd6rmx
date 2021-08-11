@@ -295,6 +295,7 @@ func main() {
 			cis.ReadRegister("BR")
 			cis.ReadRegister("OF")
 			cis.ReadRegister("OC")
+			cis.ReadRegisterWithVal("OC", "C0")
 			cis.ReadRegister("RC")
 			cis.ReadRegister("SS")
 			cis.ReadRegister("DC")
