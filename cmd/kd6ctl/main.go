@@ -284,6 +284,26 @@ func main() {
 		},
 	}
 
+	gain := &ffcli.Command{
+		Name:       "gain",
+		ShortUsage: "kd6ctl gain <preset>",
+		ShortHelp:  "Enables the gain control and sets the specified value ",
+		Exec: func(_ context.Context, args []string) error {
+			if n := len(args); n != 1 {
+				return fmt.Errorf("adjustthe gain number")
+			}
+
+			gain, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			cis := kd6rmx.Sensor{Port: *port}
+			cis.GainAmplifierEnabled(true)
+			return cis.GainAmplifierLevel(gain)
+		},
+	}
+
 	dumpreg := &ffcli.Command{
 		Name:       "dumpreg",
 		ShortUsage: "kd6ctl dumpreg",
@@ -315,7 +335,7 @@ func main() {
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{version, dumpreg, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
+		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
