@@ -1,18 +1,23 @@
 include env.mk
 
-release: build bump-version tag-kd6rmx
+release: bump-version build tag-kd6rmx
 
 tag-kd6rmx:
 	git tag $(VERSION)
 	git push origin $(VERSION)
 
 build: clean
-	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o build/kd6ctl ./cmd/kd6ctl
+	mkdir -p build/kd6ctl-$(VERSION)-windows
+	env GOOS=windows GOARCH=amd64 go build -o build/kd6ctl-$(VERSION)-windows/kd6ctl.exe ./cmd/kd6ctl
+	mkdir -p build/kd6ctl-$(VERSION)-linux
+	env GOOS=linux GOARCH=amd64 go build -o build/kd6ctl-$(VERSION)-linux/kd6ctl ./cmd/kd6ctl
+	mkdir -p build/kd6ctl-$(VERSION)-macos
+	env GOOS=darwin GOARCH=arm64 go build -o build/kd6ctl-$(VERSION)-macos/kd6ctl ./cmd/kd6ctl
 
 clean:
 	$(rm build/*)
 
-install: build
+install:
 	go install ./cmd/kd6ctl 
 
 bump-version:
