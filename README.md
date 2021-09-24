@@ -92,26 +92,63 @@ kd6ctl led ab on
 
 ### How to build binaries for different platforms
 
-#### Windows
+#### Windows (amd64 architecture)
 
 ```shell
-env GOOS=windows GOARCH=amd64 go build -o build/kd6ctl.exe ./cmd/kd6ctl
+make build-windows
 ```
 
-#### Linux
+#### Linux (amd64 architecture)
 
 ```shell
-env GOOS=linux GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+make build-linux
 ```
 
-#### macOS - Intel
+#### macOS (amd64 architecture)
 
 ```shell
-env GOOS=darwin GOARCH=amd64 go build -o build/kd6ctl ./cmd/kd6ctl
+make build-macos
 ```
 
-#### macOS - M1
+#### macOS - M1 (arm64 architecture)
 
 ```shell
-env GOOS=darwin GOARCH=arm64 go build -o build/kd6ctl ./cmd/kd6ctl
+make build-macos-m1
+```
+
+#### All of above
+
+``` shell
+make build-all
+```
+
+#### build for the current platform (if you're unsure about the OS and architecture)
+
+```shell
+make build
+```
+
+#### Generic build command
+build binaries for other Operating Systems and architectures
+```shell
+env GOOS=<OS> GOARCH=<ARCH> go build -o build/kd6ctl-<OS>-<ARCH> ./cmd/kd6ctl
+```
+replace the ```OS``` by operating system and ```ARCH``` by architecture supported by go cross-compiler.
+
+### How to release a tagged version
+Following commands build binaries for Windows (amd64), Linux (amd64), macOS (amd64) and macOS M1 (arm64).
+
+Bump release tag to minor
+```shell
+make release bump=minor
+```
+
+Bump relase tag to major
+```shell
+make release bump=major
+```
+
+if bump argument is not mentiond, then the release will be bumped with tag patch
+```shell
+make release
 ```
