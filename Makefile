@@ -39,7 +39,7 @@ else
 	target_name="kd6ctl"
 endif
 	mkdir -p build/kd6ctl-$(VERSION)-$(GOOS)-$(GOARCH)
-	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o build/kd6ctl-$(VERSION)-$(GOOS)-$(GOARCH)/kd6ctl ./cmd/kd6ctl
+	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o build/kd6ctl-$(VERSION)-$(GOOS)-$(GOARCH)/$(target_name) ./cmd/kd6ctl
 
 clean:
 	rm -rf build/*
