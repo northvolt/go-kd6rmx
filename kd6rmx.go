@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -560,12 +561,12 @@ func (cis Sensor) SoftwareReset() error {
 }
 
 func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
+
 	f, err := os.OpenFile(cis.Port, os.O_RDWR|os.O_APPEND, 0777)
 	if err != nil {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
 	defer f.Close()
-
 	_, err = f.Write([]byte(cmd + params + "\r"))
 	if err != nil {
 		return "", fmt.Errorf("error sending command: %v", err)
@@ -601,32 +602,346 @@ func checkError(funcname, result string) error {
 	return nil
 }
 
-func (cis Sensor) ReadRegister(register string) {
-	cis.ReadRegisterWithVal(register, "80")
+func (cis Sensor) ReadRegister(register string) error {
+	return cis.ReadRegisterWithVal(register, "80")
 }
 
-func (cis Sensor) ReadRegisterWithVal(register, val string) {
-	result, err := cis.sendCommand(register, val)
+func parseRate(short_res string) error {
+	var val float32
+	switch short_res {
+	case "00":
+		val = 9.6
+	case "01":
+		val = 19.2
+	case "02":
+		val = 115.2
+	default:
+		return errors.New("invalid output Baud Rate")
+	}
+	fmt.Printf("(UART Setting: Baud rate: %.1f MHz)\n", val)
+	return nil
+}
 
+func parseFreq(short_res string) error {
+	var val float32
+	switch short_res {
+	case "00":
+		val = 48
+	case "01":
+		val = 50.7
+	case "02":
+		val = 51.0
+	case "03":
+		val = 51.4
+	case "04":
+		val = 52.0
+	case "05":
+		val = 52.8
+	case "06":
+		val = 53.3
+	case "07":
+		val = 54.0
+	case "08":
+		val = 54.9
+	case "09":
+		val = 56.0
+	case "0A":
+		val = 57.0
+	case "0B":
+		val = 57.6
+	case "0C":
+		val = 58.3
+	case "0D":
+		val = 60.0
+	case "0E":
+		val = 62.7
+	case "0F":
+		val = 62.4
+	case "10":
+		val = 64.0
+	case "11":
+		val = 65.1
+	case "12":
+		val = 66.0
+	case "13":
+		val = 67.2
+	case "14":
+		val = 68.0
+	case "15":
+		val = 68.6
+	case "16":
+		val = 72.0
+	case "17":
+		val = 76.0
+	case "18":
+		val = 76.8
+	case "19":
+		val = 78.0
+	case "1A":
+		val = 80.0
+	case "1B":
+		val = 81.6
+	case "1C":
+		val = 84.0
+	default:
+		return errors.New("invalid output frequency")
+	}
+	fmt.Printf("(Frequency: %.1f MHz)\n", val)
+	return nil
+}
+
+func parseComm(short_res, val string) error {
+	switch val {
+	case "80":
+		var val string
+		switch short_res {
+		case "00":
+			val = "10bit Serial Base Configuration"
+		case "01":
+			val = "10bit Serial Medium Configuration"
+		case "02":
+			val = "10bit Serial Medium Configuration2"
+		case "03":
+			val = "10bit Serial Medium Configuration3"
+		case "04":
+			val = "10bit Parallel Base Configuration"
+		case "05":
+			val = "10bit Parallel Medium Configuration"
+		case "06":
+			val = "10bit Parallel Medium Configuration2"
+		case "07":
+			val = "10bit Parallel Medium Configuration3"
+		case "08":
+			val = "8bit Serial Base Configuration"
+		case "09":
+			val = "8bit Serial Medium Configuration"
+		case "0A":
+			val = "8bit Serial Medium Configuration2"
+		case "0B":
+			val = "8bit Serial Medium Configuration3"
+		case "0C":
+			val = "8bit Parallel Base Configuration"
+		case "0D":
+			val = "8bit Parallel Medium Configuration"
+		case "0E":
+			val = "8bit Parallel Medium Configuration2"
+		case "0F":
+			val = "8bit Parallel Medium Configuration3"
+		default:
+			return errors.New("invalid output format")
+		}
+		fmt.Printf("(Output Format: %s)\n", val)
+
+	case "A0":
+		var val string
+		switch short_res {
+		case "20":
+			val = "Overlap Output Off"
+		case "21":
+			val = "Overlap Output On"
+		default:
+			return errors.New("invalid overlap output")
+		}
+		fmt.Printf("(%s)\n", val)
+
+	case "C0":
+		var val string
+		switch short_res {
+		case "40":
+			val = "Interpolation function Off"
+		case "41":
+			val = "Interpolation function On"
+		default:
+			return errors.New("invalid interpolation output")
+		}
+		fmt.Printf("(%s)\n", val)
+	default:
+		return errors.New("invalid output format")
+	}
+	return nil
+}
+func parseRes(short_res string) error {
+	var val int32
+	switch short_res {
+	case "00":
+		val = 600
+	case "01":
+		val = 300
+	case "02":
+		val = 150
+	case "03":
+		val = 75
+	default:
+		return errors.New("invalid resolution")
+	}
+	fmt.Printf("(Resolution: %ddpi)\n", val)
+	return nil
+}
+
+func parseSync(short_res string) error {
+	var val string
+	switch short_res {
+	case "00":
+		val = "Internal synchronization"
+	case "01":
+		val = "External synchronization"
+	default:
+		return errors.New("invalid synchronization mode")
+	}
+	fmt.Printf("(%s)\n", val)
+	return nil
+}
+
+func parseLED(short_res, result, val string) error {
+	switch val {
+	case "80":
+		var val string
+		switch short_res {
+		case "00":
+			val = "Pulse1: OFF"
+		case "01":
+			val = "Pulse1: illumination A ON"
+		case "02":
+			val = "Pulse1: illumination B ON"
+		case "03":
+			val = "Pulse1: A and B ON"
+		case "04":
+			val = "Pulse2: OFF"
+		case "05":
+			val = "Pulse2: illumination A ON"
+		case "06":
+			val = "Pulse2: illumination B ON"
+		case "07":
+			val = "Pulse2: A and B ON"
+		case "08":
+			val = "Pulse4: OFF"
+		case "09":
+			val = "Pulse4: illumination A ON"
+		case "0A":
+			val = "Pulse4: illumination B ON"
+		case "0B":
+			val = "Pulse4: A and B ON"
+		case "0C":
+			val = "Pulse8: OFF"
+		case "0D":
+			val = "Pulse8: illumination A ON"
+		case "0E":
+			val = "ulse8: illumination B ON"
+		case "0F":
+			val = "Pulse8: A and B ON"
+		default:
+			return errors.New("invalid LED config")
+		}
+		fmt.Printf("(%s)\n", val)
+
+	case "A0":
+		if len(result) < 8 {
+			fmt.Printf("(LED Period A: %d)", len(result))
+			return errors.New("result too short")
+		}
+		hex := result[4:8]
+		value, _ := strconv.ParseInt(hex, 16, 64)
+		fmt.Printf("(LED Period A: %d)\n", value)
+	case "C0":
+		if len(result) < 8 {
+			fmt.Printf("(LED Period A: %d)", len(result))
+			return errors.New("result too short")
+		}
+		hex := result[4:8]
+		value, _ := strconv.ParseInt(hex, 16, 64)
+		fmt.Printf("(LED Period B: %d)\n", value)
+	case "E0":
+		// var val string
+		// switch short_res {
+		// case "40":
+		// 	val = "Interpolation function Off"
+		// case "41":
+		// 	val = "Interpolation function On"
+		// default:
+		// 	return errors.New("invalid interpolation output")
+		// }
+		fmt.Printf("(period setting %s)\n", short_res)
+	default:
+		return errors.New("LED control setting")
+	}
+	return nil
+}
+
+func parseDarkCorr(short_res string) error {
+	var val string
+	switch short_res {
+	case "00":
+		val = "Black correction OFF"
+	case "01":
+		val = "Black correction ON"
+	default:
+		return errors.New("invalid dark correction mode")
+	}
+	fmt.Printf("(%s)\n", val)
+	return nil
+}
+
+func parseWhiteCorr(short_res string) error {
+	var val string
+	switch short_res {
+	case "00":
+		val = "White correction OFF"
+	case "01":
+		val = "White correction ON"
+	default:
+		return errors.New("invalid white correction mode")
+	}
+	fmt.Printf("(%s)\n", val)
+	return nil
+}
+
+func (cis Sensor) ReadRegisterWithVal(register, val string) error {
+	result, err := cis.sendCommand(register, val)
+	if err != nil {
+		return errors.New("error: send command failed")
+	}
 	fmt.Printf("Reading %s register with parameter 0x%s ", register, val)
 
-	if err == nil {
-		if result[:2] == "00" {
-			fmt.Printf("Reading SUCCESS. ")
-		} else {
-			fmt.Printf("Reading FAIL. ")
-		}
-
-		fmt.Print("Response from CIS ")
-
-		for index := 0; index < len(result); index += 2 {
-			fmt.Printf("0x%s ", result[index:index+2])
-		}
-
-		fmt.Println(" ")
-
-	} else {
-		fmt.Printf("Communication with CIS failed. Error reading register %s\n", register)
+	if result[:2] != "00" {
+		fmt.Printf("Reading FAIL. ")
+		return errors.New("error: reading fal")
 	}
 
+	fmt.Print("Response from CIS ")
+
+	for index := 0; index < len(result); index += 2 {
+		fmt.Printf("0x%s ", result[index:index+2])
+	}
+
+	short_res := result[2:4]
+
+	switch register {
+	case "BR":
+		return parseRate(short_res)
+
+	case "OF":
+		return parseFreq(short_res)
+
+	case "OC":
+		return parseComm(short_res, val)
+
+	case "RC":
+		return parseRes(short_res)
+
+	case "SS":
+		return parseSync(short_res)
+	case "LC":
+		return parseLED(short_res, result, val)
+
+	case "DC":
+		return parseDarkCorr(short_res)
+
+	case "WC":
+		return parseWhiteCorr(short_res)
+
+	default:
+		fmt.Printf("(default)")
+	}
+
+	return nil
 }
