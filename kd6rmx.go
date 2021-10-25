@@ -444,6 +444,7 @@ func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
 
 func (cis Sensor) PerformWhiteCorrection() error {
 	result, err := cis.sendCommand("WC", "21")
+
 	if err != nil {
 		return err
 	}
@@ -451,15 +452,18 @@ func (cis Sensor) PerformWhiteCorrection() error {
 }
 
 func (cis Sensor) WhiteCorrectionTarget(target int) error {
-	if target > 255 {
+	if target > 4096 {
 		return errors.New("invalid white correction target")
 	}
-	h := fmt.Sprintf("%02X", target)
+
+	h := fmt.Sprintf("%04X", target)
 
 	result, err := cis.sendCommand("WC40", h)
 	if err != nil {
 		return err
 	}
+	// sleep for one second to make sure correction finished
+	time.Sleep(1 * time.Second)
 	return checkError("WhiteCorrectionTarget", result)
 }
 
@@ -565,7 +569,6 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
 	defer f.Close()
-
 	_, err = f.Write([]byte(cmd + params + "\r"))
 	if err != nil {
 		return "", fmt.Errorf("error sending command: %v", err)

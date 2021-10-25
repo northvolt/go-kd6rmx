@@ -202,18 +202,16 @@ func main() {
 			case "adjust":
 				return cis.PerformWhiteCorrection()
 			case "target":
-				var target = 250
 				if len(args) < 2 {
-					fmt.Printf("no white correction target provided, using factory default of %d\n", target)
-				} else {
-					var err error
-					target, err = strconv.Atoi(args[1])
-					if err != nil {
-						return fmt.Errorf("invalid value for white correction target")
-					}
-					return cis.WhiteCorrectionTarget(target)
+					return fmt.Errorf("error no 'target' value provided")
 				}
-				return cis.PerformWhiteCorrection()
+
+				target, err := strconv.Atoi(args[1])
+				if err != nil {
+					return fmt.Errorf("invalid value for white correction target")
+				}
+
+				return cis.WhiteCorrectionTarget(target)
 			default:
 				return fmt.Errorf("invalid white correction subcommand, must be 'on', 'off', 'adjust', or 'target'")
 			}
