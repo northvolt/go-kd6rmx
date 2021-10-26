@@ -286,21 +286,28 @@ func main() {
 
 	gain := &ffcli.Command{
 		Name:       "gain",
-		ShortUsage: "kd6ctl gain <preset>",
+		ShortUsage: "kd6ctl gain <value/on/off>",
 		ShortHelp:  "Enables the gain control and sets the specified value ",
 		Exec: func(_ context.Context, args []string) error {
-			if n := len(args); n != 1 {
-				return fmt.Errorf("adjustthe gain number")
-			}
-
-			gain, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
+			if len(args) < 1 {
+				return fmt.Errorf("adjust the gain number")
 			}
 
 			cis := kd6rmx.Sensor{Port: *port}
-			cis.GainAmplifierEnabled(true)
-			return cis.GainAmplifierLevel(gain)
+			switch args[0] {
+			case "on":
+				cis.GainAmplifierEnabled(true)
+			case "off":
+				cis.GainAmplifierEnabled(false)
+			default:
+				gain, err := strconv.Atoi(args[0])
+				if err != nil {
+					return err
+				}
+				return cis.GainAmplifierLevel(gain)
+			}
+
+			return nil
 		},
 	}
 
