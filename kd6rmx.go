@@ -385,26 +385,33 @@ func (cis Sensor) LEDControl(leds string, on bool, pulsedivider int) error {
 
 // LEDDutyCycle sets the duty cycle for each LED separately.
 // The value for duty represents the raw value of register LC.
-func (cis Sensor) LEDDutyCycle(led string, duty int) error {
-	var ls string
-	switch led {
-	case "a", "A":
-		ls = "20"
-	case "b", "B":
-		ls = "40"
-	default:
-		return errors.New("invalid LED for duty cycle")
-	}
+func (cis Sensor) LEDDutyCycle(duty int) error {
 
 	if duty <= 0 || duty >= 4096 {
 		return errors.New("invalid duty cycle register value")
 	}
-	param := fmt.Sprintf("%s%04X", ls, duty)
+	param := fmt.Sprintf("%04X", duty)
+	fmt.Println("param")
+	fmt.Println(param)
 
-	result, err := cis.sendCommand("LC", param)
+	cmd1 := fmt.Sprintf("%s%s", "20", param)
+	result, err := cis.sendCommand("LC", cmd1)
 	if err != nil {
 		return err
 	}
+
+	cmd2 := fmt.Sprintf("%s%s", "40", param)
+	result, err = cis.sendCommand("LC", cmd2)
+	if err != nil {
+		return err
+	}
+
+	cmd3 := fmt.Sprintf("%s%s", "60", param)
+	result, err = cis.sendCommand("LC", cmd3)
+	if err != nil {
+		return err
+	}
+
 	return checkError("LEDDutyCycle", result)
 }
 
@@ -569,7 +576,9 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
 	defer f.Close()
-	_, err = f.Write([]byte(cmd + params + "\r"))
+	line := cmd + params + "\r"
+	fmt.Printf("send: %s\n", line)
+	_, err = f.Write([]byte(line))
 	if err != nil {
 		return "", fmt.Errorf("error sending command: %v", err)
 	}
@@ -587,6 +596,7 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 		switch {
 		case result[len(result)-1] == '\r':
 			result = strings.Replace(result, "\r", "", -1)
+			fmt.Printf("received: %s\n", result)
 			return result, nil
 		case n == 0:
 			return "", fmt.Errorf("no data in result from command")

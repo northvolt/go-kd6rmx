@@ -260,25 +260,20 @@ func main() {
 
 	duty := &ffcli.Command{
 		Name:       "duty",
-		ShortUsage: "kd6ctl duty <a/b> <duty>",
+		ShortUsage: "kd6ctl duty <duty>",
 		ShortHelp:  "Set LED duty illumination period register value. Valid range 0 to 4095.",
 		Exec: func(_ context.Context, args []string) error {
-			if len(args) < 2 {
+			if len(args) < 1 {
 				return fmt.Errorf("duty command requires specific LEDs either 'a' or 'b'. You must also specify the duty to set LEDs to")
 			}
 
-			led := args[0]
-			if led != "a" && led != "b" {
-				return fmt.Errorf("invalid led value. must be 'a' or 'b'")
-			}
-
-			duty, err := strconv.Atoi(args[1])
+			duty, err := strconv.Atoi(args[0])
 			if err != nil {
 				return err
 			}
 
 			cis := kd6rmx.Sensor{Port: *port}
-			return cis.LEDDutyCycle(led, duty)
+			return cis.LEDDutyCycle(duty)
 		},
 	}
 
