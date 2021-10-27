@@ -455,12 +455,15 @@ func (cis Sensor) WhiteCorrectionTarget(target int) error {
 	if target > 255 {
 		return errors.New("invalid white correction target")
 	}
-	h := fmt.Sprintf("%02X", target)
+
+	h := fmt.Sprintf("%04X", target*16)
 
 	result, err := cis.sendCommand("WC40", h)
 	if err != nil {
 		return err
 	}
+	// sleep for one second to make sure correction finished
+	time.Sleep(1 * time.Second)
 	return checkError("WhiteCorrectionTarget", result)
 }
 
