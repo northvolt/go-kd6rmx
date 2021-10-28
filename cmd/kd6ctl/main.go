@@ -49,6 +49,33 @@ func main() {
 		},
 	}
 
+	pattern := &ffcli.Command{
+		Name:       "pattern",
+		ShortUsage: "kd6ctl pattern <value/on/off>",
+		ShortHelp:  "Decide test pattern.",
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("needs test pattern value")
+			}
+
+			cis := kd6rmx.Sensor{Port: *port}
+			switch args[0] {
+			case "on":
+				cis.TestPatternEnabled(true)
+			case "off":
+				cis.TestPatternEnabled(false)
+			case "stripe":
+				return cis.TestPattern(kd6rmx.TestPatternStripe)
+			case "ramp":
+				return cis.TestPattern(kd6rmx.TestPatternRamp)
+			default:
+				return fmt.Errorf("no valid test pattern name [on, off, stripe, ramp]")
+			}
+
+			return nil
+		},
+	}
+
 	save := &ffcli.Command{
 		Name:       "save",
 		ShortUsage: "kd6ctl save <preset>",
@@ -360,7 +387,7 @@ func main() {
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty, cmd},
+		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, pattern, outputfreq, outputfmt, interp, dark, white, leds, duty, cmd},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},
