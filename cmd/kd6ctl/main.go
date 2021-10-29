@@ -17,6 +17,7 @@ func main() {
 	var (
 		rootFlagSet = flag.NewFlagSet("kd6ctl", flag.ExitOnError)
 		port        = rootFlagSet.String("p", "/dev/corser/XtiumCLMX41_s0", "port of KD6RMX sensor to use")
+		logging     = rootFlagSet.Bool("log", false, "turn on debug logging")
 	)
 
 	version := &ffcli.Command{
@@ -43,7 +44,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.LoadSettings(preset)
 		},
 	}
@@ -62,7 +63,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.SaveSettings(preset)
 		},
 	}
@@ -81,7 +82,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.OutputFrequency(float32(freq))
 		},
 	}
@@ -130,7 +131,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.PixelOutputFormat(bits, intf, conf, num)
 		},
 	}
@@ -154,7 +155,7 @@ func main() {
 				return fmt.Errorf("invalid interpolation, must be on or off")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.PixelInterpolation(on)
 		},
 	}
@@ -168,7 +169,7 @@ func main() {
 				return fmt.Errorf("dark correction requires a subcommand: 'on', 'off', or 'adjust'")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 
 			switch args[0] {
 			case "on":
@@ -255,7 +256,7 @@ func main() {
 				}
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.LEDControl(leds, on, pulse)
 		},
 	}
@@ -293,7 +294,7 @@ func main() {
 				return fmt.Errorf("adjust the gain number")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			switch args[0] {
 			case "on":
 				cis.GainAmplifierEnabled(true)

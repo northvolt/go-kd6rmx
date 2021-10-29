@@ -11,7 +11,8 @@ import (
 
 // Sensor is a wrapper for control functions for the KD6RMX contact image sensor.
 type Sensor struct {
-	Port string
+	Port    string
+	Logging bool
 }
 
 // CommunicationSpeed sets the communcation speed.
@@ -522,6 +523,7 @@ func (cis Sensor) TestPatternEnabled(on bool) error {
 	if err != nil {
 		return err
 	}
+
 	return checkError("TestPatternEnabled", result)
 }
 
@@ -570,7 +572,12 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
 	defer f.Close()
-	_, err = f.Write([]byte(cmd + params + "\r"))
+	write_string := cmd + params + "\r"
+	if cis.Logging {
+		fmt.Println("send: ", write_string)
+	}
+
+	_, err = f.Write([]byte(write_string))
 	if err != nil {
 		return "", fmt.Errorf("error sending command: %v", err)
 	}
@@ -588,6 +595,9 @@ func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
 		switch {
 		case result[len(result)-1] == '\r':
 			result = strings.Replace(result, "\r", "", -1)
+			if cis.Logging {
+				fmt.Println("received: ", result)
+			}
 			return result, nil
 		case n == 0:
 			return "", fmt.Errorf("no data in result from command")
