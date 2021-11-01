@@ -338,11 +338,29 @@ func main() {
 		},
 	}
 
+	cmd := &ffcli.Command{
+		Name:       "cmd",
+		ShortUsage: "kd6ctl cmd <register> <value>",
+		ShortHelp:  "Sends the specified command to sensor",
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) < 2 {
+				return fmt.Errorf("cmd command requires specific register and value you want to send")
+			}
+
+			register := args[0]
+			command := args[1]
+
+			cis := kd6rmx.Sensor{Port: *port}
+			cis.SendCommand(register, command)
+			return nil
+		},
+	}
+
 	root := &ffcli.Command{
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty},
+		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, outputfreq, outputfmt, interp, dark, white, leds, duty, cmd},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

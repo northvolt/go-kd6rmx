@@ -29,7 +29,7 @@ func (cis Sensor) CommunicationSpeed(baud int) error {
 		return errors.New("invalid baud rate")
 	}
 
-	_, err := cis.sendCommand("BR", param)
+	_, err := cis.SendCommand("BR", param)
 	return err
 }
 
@@ -99,7 +99,7 @@ func (cis Sensor) OutputFrequency(freq float32) error {
 		return errors.New("invalid output frequency")
 	}
 
-	result, err := cis.sendCommand("OF", val)
+	result, err := cis.SendCommand("OF", val)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func (cis Sensor) PixelOutputFormat(bits PixelOutputBits, i PixelOutputInterface
 		return errors.New("invalid params for PixelOutputFormat")
 	}
 
-	result, err := cis.sendCommand("OC", param)
+	result, err := cis.SendCommand("OC", param)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (cis Sensor) PixelOverlap(on bool) error {
 	if on {
 		param = "21"
 	}
-	result, err := cis.sendCommand("OC", param)
+	result, err := cis.SendCommand("OC", param)
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (cis Sensor) PixelInterpolation(on bool) error {
 		param = "41"
 	}
 
-	result, err := cis.sendCommand("OC", param)
+	result, err := cis.SendCommand("OC", param)
 	if err != nil {
 		return err
 	}
@@ -264,7 +264,7 @@ func (cis Sensor) PixelResolution(res int) error {
 		return errors.New("invalid resolution")
 	}
 
-	result, err := cis.sendCommand("RC", param)
+	result, err := cis.SendCommand("RC", param)
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func (cis Sensor) PixelResolution(res int) error {
 
 // ExternalSync turns on the external sync.
 func (cis Sensor) ExternalSync() error {
-	result, err := cis.sendCommand("SS", "01")
+	result, err := cis.SendCommand("SS", "01")
 	if err != nil {
 		return err
 	}
@@ -287,7 +287,7 @@ func (cis Sensor) InternalSync(val int) error {
 	}
 
 	param := fmt.Sprintf("00%000X", val)
-	result, err := cis.sendCommand("SS", param)
+	result, err := cis.SendCommand("SS", param)
 	if err != nil {
 		return err
 	}
@@ -311,7 +311,7 @@ func (cis Sensor) LoadSettings(preset int) error {
 	}
 
 	param := fmt.Sprintf("%02X", preset)
-	result, err := cis.sendCommand("DT", param)
+	result, err := cis.SendCommand("DT", param)
 	if err != nil {
 		return err
 	}
@@ -330,7 +330,7 @@ func (cis Sensor) SaveSettings(preset int) error {
 	}
 
 	param := fmt.Sprintf("%02X", 0x80+preset)
-	result, err := cis.sendCommand("DT", param)
+	result, err := cis.SendCommand("DT", param)
 	if err != nil {
 		return err
 	}
@@ -378,7 +378,7 @@ func (cis Sensor) LEDControl(leds string, on bool, pulsedivider int) error {
 	}
 
 	param := fmt.Sprintf("%02X", val)
-	result, err := cis.sendCommand("LC", param)
+	result, err := cis.SendCommand("LC", param)
 	if err != nil {
 		return err
 	}
@@ -403,7 +403,7 @@ func (cis Sensor) LEDDutyCycle(led string, duty int) error {
 	}
 	param := fmt.Sprintf("%s%04X", ls, duty)
 
-	result, err := cis.sendCommand("LC", param)
+	result, err := cis.SendCommand("LC", param)
 	if err != nil {
 		return err
 	}
@@ -416,7 +416,7 @@ func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 		param = "01"
 	}
 
-	result, err := cis.sendCommand("DC", param)
+	result, err := cis.SendCommand("DC", param)
 	if err != nil {
 		return err
 	}
@@ -424,7 +424,7 @@ func (cis Sensor) DarkCorrectionEnabled(on bool) error {
 }
 
 func (cis Sensor) PerformDarkCorrection() error {
-	result, err := cis.sendCommand("DC", "21")
+	result, err := cis.SendCommand("DC", "21")
 	if err != nil {
 		return err
 	}
@@ -437,7 +437,7 @@ func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
 		param = "01"
 	}
 
-	result, err := cis.sendCommand("WC", param)
+	result, err := cis.SendCommand("WC", param)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func (cis Sensor) WhiteCorrectionEnabled(on bool) error {
 }
 
 func (cis Sensor) PerformWhiteCorrection() error {
-	result, err := cis.sendCommand("WC", "21")
+	result, err := cis.SendCommand("WC", "21")
 	if err != nil {
 		return err
 	}
@@ -459,7 +459,7 @@ func (cis Sensor) WhiteCorrectionTarget(target int) error {
 
 	h := fmt.Sprintf("%04X", target*16)
 
-	result, err := cis.sendCommand("WC40", h)
+	result, err := cis.SendCommand("WC40", h)
 	if err != nil {
 		return err
 	}
@@ -474,7 +474,7 @@ func (cis Sensor) GainAmplifierEnabled(on bool) error {
 		param = "01"
 	}
 
-	_, err := cis.sendCommand("PG", param)
+	_, err := cis.SendCommand("PG", param)
 	return err
 }
 
@@ -493,7 +493,7 @@ func (cis Sensor) GainAmplifierLevel(gain int) error {
 		param = fmt.Sprintf("21%04X", gain)
 	}
 
-	result, err := cis.sendCommand("PG", param)
+	result, err := cis.SendCommand("PG", param)
 	if err != nil {
 		return err
 	}
@@ -506,7 +506,7 @@ func (cis Sensor) YCorrectionEnabled(on bool) error {
 		param = "01"
 	}
 
-	result, err := cis.sendCommand("OC", param)
+	result, err := cis.SendCommand("OC", param)
 	if err != nil {
 		return err
 	}
@@ -519,7 +519,7 @@ func (cis Sensor) TestPatternEnabled(on bool) error {
 		param = "01"
 	}
 
-	result, err := cis.sendCommand("TP", param)
+	result, err := cis.SendCommand("TP", param)
 	if err != nil {
 		return err
 	}
@@ -540,7 +540,7 @@ func (cis Sensor) TestPattern(pattern TestPatternType) error {
 		param = "21"
 	}
 
-	result, err := cis.sendCommand("TP", param)
+	result, err := cis.SendCommand("TP", param)
 	if err != nil {
 		return err
 	}
@@ -548,7 +548,7 @@ func (cis Sensor) TestPattern(pattern TestPatternType) error {
 }
 
 func (cis Sensor) SoftwareReset() error {
-	result, err := cis.sendCommand("SR", "21")
+	result, err := cis.SendCommand("SR", "21")
 	if err != nil {
 		return err
 	}
@@ -558,14 +558,14 @@ func (cis Sensor) SoftwareReset() error {
 
 	time.Sleep(10 * time.Second)
 
-	result, err = cis.sendCommand("SR", "01")
+	result, err = cis.SendCommand("SR", "01")
 	if err != nil {
 		return err
 	}
 	return checkError("SoftwareReset", result)
 }
 
-func (cis Sensor) sendCommand(cmd string, params string) (string, error) {
+func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 
 	f, err := os.OpenFile(cis.Port, os.O_RDWR|os.O_APPEND, 0777)
 	if err != nil {
@@ -909,7 +909,7 @@ func parseWhiteCorr(short_res string) error {
 }
 
 func (cis Sensor) ReadRegisterWithVal(register, val string) error {
-	result, err := cis.sendCommand(register, val)
+	result, err := cis.SendCommand(register, val)
 	if err != nil {
 		return errors.New("error: send command failed")
 	}
