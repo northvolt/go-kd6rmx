@@ -3,6 +3,7 @@ package kd6rmx
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -586,9 +587,18 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 	var result string
 	start := time.Now()
 	for {
+
 		n, err := f.Read(buf)
 		if err != nil {
-			return "", fmt.Errorf("error receiving result from command: %v", err)
+			if err == io.EOF {
+				if time.Since(start) > time.Second*10 {
+					return "", fmt.Errorf("timeout receiving result from command")
+				}
+				continue
+			}
+
+			// some other error
+			return "", err
 		}
 
 		result += string(buf[:n])
