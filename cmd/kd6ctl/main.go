@@ -58,7 +58,7 @@ func main() {
 				return fmt.Errorf("needs test pattern value")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			switch args[0] {
 			case "on":
 				cis.TestPatternEnabled(true)
@@ -220,7 +220,7 @@ func main() {
 				return fmt.Errorf("white correction requires a subcommand: 'on', 'off', 'adjust', or 'target'")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 
 			switch args[0] {
 			case "on":
@@ -307,7 +307,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			return cis.LEDDutyCycle(led, duty)
 		},
 	}
@@ -345,7 +345,7 @@ func main() {
 		ShortHelp:  "Dump the register values of CIS.",
 		Exec: func(_ context.Context, args []string) error {
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			cis.ReadRegister("BR")
 			cis.ReadRegister("OF")
 			cis.ReadRegister("OC")
@@ -378,7 +378,7 @@ func main() {
 			register := args[0]
 			command := args[1]
 
-			cis := kd6rmx.Sensor{Port: *port}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
 			cis.SendCommand(register, command)
 			return nil
 		},
