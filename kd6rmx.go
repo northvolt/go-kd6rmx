@@ -918,6 +918,38 @@ func parseWhiteCorr(short_res string) error {
 	return nil
 }
 
+func parseTestPattern(short_res, val string) error {
+	switch val {
+	case "80":
+		var val string
+		switch short_res {
+		case "00":
+			val = "Image output"
+		case "01":
+			val = "Test pattern output"
+		default:
+			return errors.New("output mode")
+		}
+		fmt.Printf("(%s)\n", val)
+	case "A0":
+		var val string
+		switch short_res {
+		case "20":
+			val = "Stripe pattern output"
+		case "21":
+			val = "Ramp pattern output"
+		default:
+			return errors.New("invalid test pattern")
+		}
+		fmt.Printf("(%s)\n", val)
+	default:
+		return errors.New("Test Pattern")
+
+	}
+
+	return nil
+}
+
 func (cis Sensor) ReadRegisterWithVal(register, val string) error {
 	result, err := cis.SendCommand(register, val)
 	if err != nil {
@@ -961,6 +993,8 @@ func (cis Sensor) ReadRegisterWithVal(register, val string) error {
 
 	case "WC":
 		return parseWhiteCorr(short_res)
+	case "TP":
+		parseTestPattern(short_res, val)
 
 	default:
 		fmt.Printf("(default)")

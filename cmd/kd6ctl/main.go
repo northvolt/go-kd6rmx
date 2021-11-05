@@ -346,22 +346,23 @@ func main() {
 		Exec: func(_ context.Context, args []string) error {
 
 			cis := kd6rmx.Sensor{Port: *port}
-			err := cis.ReadRegister("BR")
-			err = cis.ReadRegister("OF")
-			err = cis.ReadRegister("OC")
-			err = cis.ReadRegisterWithVal("OC", "C0")
-			err = cis.ReadRegister("RC")
-			err = cis.ReadRegister("SS")
-			err = cis.ReadRegister("DC")
-			err = cis.ReadRegister("LC")
-			err = cis.ReadRegisterWithVal("LC", "A0")
-			err = cis.ReadRegisterWithVal("LC", "C0")
-			err = cis.ReadRegister("WC")
+			cis.ReadRegister("BR")
+			cis.ReadRegister("OF")
+			cis.ReadRegister("OC")
+			cis.ReadRegisterWithVal("OC", "C0")
+			cis.ReadRegister("RC")
+			cis.ReadRegister("SS")
+			cis.ReadRegister("DC")
+			cis.ReadRegister("LC")
+			cis.ReadRegisterWithVal("LC", "A0")
+			cis.ReadRegisterWithVal("LC", "C0")
+			cis.ReadRegister("WC")
 			// cis.ReadRegister("PG")
 			// cis.ReadRegister("GC")
-			// cis.ReadRegister("TP")
+			cis.ReadRegister("TP")
+			cis.ReadRegisterWithVal("TP", "A0")
 
-			return err
+			return nil
 		},
 	}
 
