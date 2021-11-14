@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -12,8 +13,9 @@ import (
 
 // Sensor is a wrapper for control functions for the KD6RMX contact image sensor.
 type Sensor struct {
-	Port    string
-	Logging bool
+	Port        string
+	Logging     bool
+	FileLogging bool
 }
 
 // CommunicationSpeed sets the communcation speed.
@@ -573,10 +575,27 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
 	defer f.Close()
+
 	write_string := cmd + params + "\r"
+	dt_string := time.Now().Format("2006-01-02 15:04:05.000000000")
+
+	if cis.FileLogging {
+		f_log, err := os.OpenFile("kd6cmd.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return "", fmt.Errorf("cannot write to log file: %v", err)
+		}
+		defer f_log.Close()
+
+		if _, err := f_log.WriteString(dt_string + "\n"); err != nil {
+			log.Println(err)
+		}
+		if _, err := f_log.WriteString("send: " + write_string + "\n"); err != nil {
+			log.Println(err)
+		}
+	}
+
 	if cis.Logging {
-		dt := time.Now()
-		fmt.Printf("%s\n", dt.Format("2006-01-02 15:04:05.000000000"))
+		fmt.Printf("%s\n", dt_string)
 		fmt.Println("send: ", write_string)
 	}
 
@@ -607,10 +626,26 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 		switch {
 		case result[len(result)-1] == '\r':
 			result = strings.Replace(result, "\r", "", -1)
+
+			dt_string_rec := time.Now().Format("2006-01-02 15:04:05.000000000")
+			if cis.FileLogging {
+				f_log, err := os.OpenFile("kd6cmd.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+				if err != nil {
+					return "", fmt.Errorf("cannot write to log file: %v", err)
+				}
+				defer f_log.Close()
+				if _, err := f_log.WriteString(dt_string_rec + "\n"); err != nil {
+					log.Println(err)
+				}
+				if _, err := f_log.WriteString("received: " + write_string + "\n\n"); err != nil {
+					log.Println(err)
+				}
+			}
+
 			if cis.Logging {
-				dt := time.Now()
-				fmt.Printf("%s\n", dt.Format("2006-01-02 15:04:05.000000000"))
+				fmt.Printf("%s\n", dt_string_rec)
 				fmt.Printf("received: %s\n\n", result)
+
 			}
 			return result, nil
 		case n == 0:

@@ -18,6 +18,7 @@ func main() {
 		rootFlagSet = flag.NewFlagSet("kd6ctl", flag.ExitOnError)
 		port        = rootFlagSet.String("p", "/dev/corser/XtiumCLMX41_s0", "port of KD6RMX sensor to use")
 		logging     = rootFlagSet.Bool("log", false, "turn on debug logging")
+		logFile     = rootFlagSet.Bool("log-file", true, "turn on logging to file")
 	)
 
 	version := &ffcli.Command{
@@ -44,7 +45,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.LoadSettings(preset)
 		},
 	}
@@ -58,7 +59,7 @@ func main() {
 				return fmt.Errorf("needs test pattern value")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			switch args[0] {
 			case "on":
 				cis.TestPatternEnabled(true)
@@ -90,7 +91,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.SaveSettings(preset)
 		},
 	}
@@ -109,7 +110,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.OutputFrequency(float32(freq))
 		},
 	}
@@ -158,7 +159,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.PixelOutputFormat(bits, intf, conf, num)
 		},
 	}
@@ -182,7 +183,7 @@ func main() {
 				return fmt.Errorf("invalid interpolation, must be on or off")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.PixelInterpolation(on)
 		},
 	}
@@ -196,7 +197,7 @@ func main() {
 				return fmt.Errorf("dark correction requires a subcommand: 'on', 'off', or 'adjust'")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 
 			switch args[0] {
 			case "on":
@@ -220,7 +221,7 @@ func main() {
 				return fmt.Errorf("white correction requires a subcommand: 'on', 'off', 'adjust', or 'target'")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 
 			switch args[0] {
 			case "on":
@@ -283,7 +284,7 @@ func main() {
 				}
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.LEDControl(leds, on, pulse)
 		},
 	}
@@ -307,7 +308,7 @@ func main() {
 				return err
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			return cis.LEDDutyCycle(led, duty)
 		},
 	}
@@ -321,7 +322,7 @@ func main() {
 				return fmt.Errorf("adjust the gain number")
 			}
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			switch args[0] {
 			case "on":
 				cis.GainAmplifierEnabled(true)
@@ -345,7 +346,7 @@ func main() {
 		ShortHelp:  "Dump the register values of CIS.",
 		Exec: func(_ context.Context, args []string) error {
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			cis.ReadRegister("BR")
 			cis.ReadRegister("OF")
 			cis.ReadRegister("OC")
@@ -378,7 +379,7 @@ func main() {
 			register := args[0]
 			command := args[1]
 
-			cis := kd6rmx.Sensor{Port: *port, Logging: *logging}
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			cis.SendCommand(register, command)
 			return nil
 		},
