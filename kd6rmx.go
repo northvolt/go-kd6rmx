@@ -575,6 +575,8 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 	defer f.Close()
 	write_string := cmd + params + "\r"
 	if cis.Logging {
+		dt := time.Now()
+		fmt.Printf("%s\n", dt.Format("2006-01-02 15:04:05.000000000"))
 		fmt.Println("send: ", write_string)
 	}
 
@@ -606,7 +608,9 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 		case result[len(result)-1] == '\r':
 			result = strings.Replace(result, "\r", "", -1)
 			if cis.Logging {
-				fmt.Println("received: ", result)
+				dt := time.Now()
+				fmt.Printf("%s\n", dt.Format("2006-01-02 15:04:05.000000000"))
+				fmt.Printf("received: %s\n\n", result)
 			}
 			return result, nil
 		case n == 0:
