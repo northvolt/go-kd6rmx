@@ -637,7 +637,7 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 				if _, err := f_log.WriteString(dt_string_rec + "\n"); err != nil {
 					log.Println(err)
 				}
-				if _, err := f_log.WriteString("received: " + write_string + "\n\n"); err != nil {
+				if _, err := f_log.WriteString("received: " + result + "\n\n"); err != nil {
 					log.Println(err)
 				}
 			}
