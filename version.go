@@ -1,3 +1,3 @@
 package kd6rmx
 
-const Version = "0.5.5"
+const Version = "0.5.6"
