@@ -989,6 +989,18 @@ func parseTestPattern(short_res, val string) error {
 	return nil
 }
 
+func parseName(short_res, result, val string) error {
+	prod_num_p2 := result[4:6]
+	prod_num_p1 := result[6:8]
+	id := result[8:10]
+	m := result[10:12]
+	y := result[12:14]
+
+	sn := y + m + id + prod_num_p1 + prod_num_p2
+	fmt.Printf("(SN: %s)\n", sn)
+	return nil
+}
+
 func (cis Sensor) ReadRegisterWithVal(register, val string) error {
 	result, err := cis.SendCommand(register, val)
 	if err != nil {
@@ -1034,7 +1046,8 @@ func (cis Sensor) ReadRegisterWithVal(register, val string) error {
 		return parseWhiteCorr(short_res)
 	case "TP":
 		parseTestPattern(short_res, val)
-
+	case "SI":
+		return parseName(short_res, result, val)
 	default:
 		fmt.Printf("(default)")
 	}
