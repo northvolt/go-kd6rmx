@@ -362,6 +362,7 @@ func main() {
 			// cis.ReadRegister("GC")
 			cis.ReadRegister("TP")
 			cis.ReadRegisterWithVal("TP", "A0")
+			cis.ReadRegisterWithVal("SI", "C0")
 
 			return nil
 		},
