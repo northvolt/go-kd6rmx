@@ -401,7 +401,8 @@ func (cis Sensor) LEDDutyCycle(led string, duty int) error {
 		return errors.New("invalid LED for duty cycle")
 	}
 
-	if duty <= 0 || duty >= 4096 {
+	dutyMax := 4096
+	if duty <= 0 || duty >= dutyMax {
 		return errors.New("invalid duty cycle register value")
 	}
 	param := fmt.Sprintf("%s%04X", ls, duty)
@@ -411,6 +412,20 @@ func (cis Sensor) LEDDutyCycle(led string, duty int) error {
 		return err
 	}
 	return checkError("LEDDutyCycle", result)
+}
+
+func (cis Sensor) LEDIlluminationPeriod(period int) error {
+	periodMax := 4095
+	if period > periodMax {
+		return errors.New("invalid illumination period")
+	}
+	param := fmt.Sprintf("60%04X", period)
+
+	result, err := cis.SendCommand("LC", param)
+	if err != nil {
+		return err
+	}
+	return checkError("LEDIlluminationPeriod", result)
 }
 
 func (cis Sensor) DarkCorrectionEnabled(on bool) error {
@@ -913,16 +928,9 @@ func parseLED(short_res, result, val string) error {
 		value, _ := strconv.ParseInt(hex, 16, 64)
 		fmt.Printf("(LED Period B: %d)\n", value)
 	case "E0":
-		// var val string
-		// switch short_res {
-		// case "40":
-		// 	val = "Interpolation function Off"
-		// case "41":
-		// 	val = "Interpolation function On"
-		// default:
-		// 	return errors.New("invalid interpolation output")
-		// }
-		fmt.Printf("(period setting %s)\n", short_res)
+		hex := result[4:8]
+		value, _ := strconv.ParseInt(hex, 16, 64)
+		fmt.Printf("(LED Illumination period setting %d)\n", value)
 	default:
 		return errors.New("LED control setting")
 	}

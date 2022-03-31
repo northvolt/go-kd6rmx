@@ -313,6 +313,25 @@ func main() {
 		},
 	}
 
+	illum := &ffcli.Command{
+		Name:       "illum",
+		ShortUsage: "kd6ctl illum <period>",
+		ShortHelp:  "Set effective LED illumination period register value. Valid range 0 to 4095.",
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) < 1 {
+				return fmt.Errorf("adjust the effective illumination period number")
+			}
+
+			period, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
+			return cis.LEDIlluminationPeriod(period)
+		},
+	}
+
 	gain := &ffcli.Command{
 		Name:       "gain",
 		ShortUsage: "kd6ctl gain <value/on/off>",
@@ -357,6 +376,7 @@ func main() {
 			cis.ReadRegister("LC")
 			cis.ReadRegisterWithVal("LC", "A0")
 			cis.ReadRegisterWithVal("LC", "C0")
+			cis.ReadRegisterWithVal("LC", "E0")
 			cis.ReadRegister("WC")
 			// cis.ReadRegister("PG")
 			// cis.ReadRegister("GC")
@@ -390,7 +410,7 @@ func main() {
 		ShortUsage:  "kd6ctl [flags] <subcommand>",
 		ShortHelp:   "kd6ctl is a command line utility to change config on the KD6RMX contact image sensor.",
 		FlagSet:     rootFlagSet,
-		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, pattern, outputfreq, outputfmt, interp, dark, white, leds, duty, cmd},
+		Subcommands: []*ffcli.Command{version, dumpreg, gain, load, save, pattern, outputfreq, outputfmt, interp, dark, white, leds, duty, illum, cmd},
 		Exec: func(context.Context, []string) error {
 			return flag.ErrHelp
 		},

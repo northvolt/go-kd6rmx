@@ -79,6 +79,7 @@ SUBCOMMANDS
   white          White correction on/off/adjust/target.
   led            Turn sensor LEDs on or off.
   duty           Set LED duty illumination period register value. Valid range 0 to 4095.
+  illum          Set effective LED illumination period register value. Valid range 0 to 4095.
   cmd            Sends the specified command to sensor
 
 FLAGS
