@@ -997,6 +997,39 @@ func parseTestPattern(short_res, val string) error {
 	return nil
 }
 
+func parsePGA(short_res, res, val string) error {
+	switch val {
+	case "80":
+		var val string
+		switch short_res {
+		case "00":
+			val = "OFF"
+		case "01":
+			val = "ON"
+		default:
+			return errors.New("parsePGA")
+		}
+		fmt.Printf("(PGA Status: %s)\n", val)
+	case "A0":
+		var val string
+		switch short_res {
+		case "20":
+			val = "+"
+		case "21":
+			val = "-"
+		default:
+			return errors.New("invalid test pattern")
+		}
+		value, _ := strconv.ParseInt(res[4:8], 16, 64)
+		fmt.Printf("(PGA Gain value: %s%d)\n", val, value)
+	default:
+		return errors.New("Test Pattern")
+
+	}
+
+	return nil
+}
+
 func parseName(short_res, result, val string) error {
 	prod_num_p2 := result[4:6]
 	prod_num_p1 := result[6:8]
@@ -1032,30 +1065,26 @@ func (cis Sensor) ReadRegisterWithVal(register, val string) error {
 	switch register {
 	case "BR":
 		return parseRate(short_res)
-
 	case "OF":
 		return parseFreq(short_res)
-
 	case "OC":
 		return parseComm(short_res, val)
-
 	case "RC":
 		return parseRes(short_res)
-
 	case "SS":
 		return parseSync(short_res)
 	case "LC":
 		return parseLED(short_res, result, val)
-
 	case "DC":
 		return parseDarkCorr(short_res)
-
 	case "WC":
 		return parseWhiteCorr(short_res)
 	case "TP":
-		parseTestPattern(short_res, val)
+		return parseTestPattern(short_res, val)
 	case "SI":
 		return parseName(short_res, result, val)
+	case "PG":
+		return parsePGA(short_res, result, val)
 	default:
 		fmt.Printf("(default)")
 	}
