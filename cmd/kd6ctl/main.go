@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/northvolt/go-kd6rmx"
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -364,29 +365,45 @@ func main() {
 		ShortUsage: "kd6ctl dumpreg",
 		ShortHelp:  "Dump the register values of CIS.",
 		Exec: func(_ context.Context, args []string) error {
-
 			cis := kd6rmx.Sensor{Port: *port, Logging: *logging, FileLogging: *logFile}
 			cis.ReadRegister("BR")
+			time.Sleep(time.Second)
 			cis.ReadRegister("OF")
+			time.Sleep(time.Second)
 			cis.ReadRegister("OC")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("OC", "C0")
+			time.Sleep(time.Second)
 			cis.ReadRegister("RC")
+			time.Sleep(time.Second)
 			cis.ReadRegister("SS")
+			time.Sleep(time.Second)
 			cis.ReadRegister("DC")
+			time.Sleep(time.Second)
 			cis.ReadRegister("LC")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("LC", "A0")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("LC", "C0")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("LC", "E0")
+			time.Sleep(time.Second)
 			cis.ReadRegister("WC")
+			time.Sleep(time.Second)
 			// cis.ReadRegister("PG")
 			// cis.ReadRegister("GC")
 			cis.ReadRegister("TP")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("TP", "A0")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("SI", "C0")
+			time.Sleep(time.Second)
 
 			// PGA
 			cis.ReadRegisterWithVal("PG", "80")
+			time.Sleep(time.Second)
 			cis.ReadRegisterWithVal("PG", "A0")
+			time.Sleep(time.Second)
 
 			return nil
 		},
