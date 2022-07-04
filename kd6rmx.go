@@ -594,8 +594,9 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 	write_string := cmd + params + "\r"
 	dt_string := time.Now().Format("2006-01-02 15:04:05.000000000")
 
+	var f_log *os.File
 	if cis.FileLogging {
-		f_log, err := os.OpenFile("kd6cmd.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f_log, err = os.OpenFile("kd6cmd.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return "", fmt.Errorf("cannot write to log file: %v", err)
 		}
@@ -623,9 +624,9 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 	var result string
 	start := time.Now()
 	for {
-
 		n, err := f.Read(buf)
-		if err != nil {
+		switch {
+		case err != nil:
 			if err == io.EOF {
 				if time.Since(start) > time.Second*10 {
 					return "", fmt.Errorf("timeout receiving result from command")
@@ -635,6 +636,8 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 
 			// some other error
 			return "", err
+		case n == 0:
+			return "", fmt.Errorf("no data in result from command")
 		}
 
 		result += string(buf[:n])
@@ -644,11 +647,6 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 
 			dt_string_rec := time.Now().Format("2006-01-02 15:04:05.000000000")
 			if cis.FileLogging {
-				f_log, err := os.OpenFile("kd6cmd.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-				if err != nil {
-					return "", fmt.Errorf("cannot write to log file: %v", err)
-				}
-				defer f_log.Close()
 				if _, err := f_log.WriteString(dt_string_rec + "\n"); err != nil {
 					log.Println(err)
 				}
@@ -660,11 +658,9 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 			if cis.Logging {
 				fmt.Printf("%s\n", dt_string_rec)
 				fmt.Printf("received: %s\n\n", result)
-
 			}
+
 			return result, nil
-		case n == 0:
-			return "", fmt.Errorf("no data in result from command")
 		case time.Since(start) > time.Second*10:
 			return "", fmt.Errorf("timeout receiving result from command")
 		}
