@@ -9,11 +9,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"go.bug.st/serial"
 )
 
 // Sensor is a wrapper for control functions for the KD6RMX contact image sensor.
 type Sensor struct {
 	Port        string
+	BaudRate    int
 	Logging     bool
 	FileLogging bool
 }
@@ -24,10 +27,13 @@ func (cis Sensor) CommunicationSpeed(baud int) error {
 	switch baud {
 	case 9600:
 		param = "00"
+		cis.BaudRate = 9600
 	case 19200:
 		param = "01"
+		cis.BaudRate = 19200
 	case 115200:
 		param = "02"
+		cis.BaudRate = 115200
 	default:
 		return errors.New("invalid baud rate")
 	}
@@ -132,8 +138,7 @@ const (
 //
 // For example:
 //
-//		cis.PixelOutputFormat(kd6rmx.PixelOutputBits10, kd6rmx.PixelOutputSerial, kd6rmx.PixelOutputBase, 1)
-//
+//	cis.PixelOutputFormat(kd6rmx.PixelOutputBits10, kd6rmx.PixelOutputSerial, kd6rmx.PixelOutputBase, 1)
 func (cis Sensor) PixelOutputFormat(bits PixelOutputBits, i PixelOutputInterface, conf PixelOutputConfig, number int) error {
 	var param string
 	switch bits {
@@ -304,10 +309,11 @@ func (cis Sensor) InternalSync(val int) error {
 // LoadSettings loads the sensor's active settings with one of the memory presets.
 //
 // Valid presets are:
-// 		0 (factory defaults)
-// 		1 (user settings 1)
-// 		2 (user settings 2)
-// 		3 (user settings 3)
+//
+//	0 (factory defaults)
+//	1 (user settings 1)
+//	2 (user settings 2)
+//	3 (user settings 3)
 func (cis Sensor) LoadSettings(preset int) error {
 	if preset < 0 || preset > 4 {
 		return errors.New("invalid preset for LoadSettings")
@@ -324,9 +330,10 @@ func (cis Sensor) LoadSettings(preset int) error {
 // SaveSettings saves the sensor's active settings to one of the memory presets.
 //
 // Valid presets are:
-// 		1 (user settings 1)
-// 		2 (user settings 2)
-// 		3 (user settings 3)
+//
+//	1 (user settings 1)
+//	2 (user settings 2)
+//	3 (user settings 3)
 func (cis Sensor) SaveSettings(preset int) error {
 	if preset < 1 || preset > 4 {
 		return errors.New("invalid preset for SaveSettings")
@@ -343,10 +350,11 @@ func (cis Sensor) SaveSettings(preset int) error {
 // LEDControl sets the LED settings. You can do the following:
 // Turn on/off the A and B LEDS individually.
 // Set the pulse divider to be used for both LEDS so they are:
-//		1 = on all of the time
-//		2 = on one half of the time
-//		4 = on one quarter of the time
-//		8 = on one eighth of the time
+//
+//	1 = on all of the time
+//	2 = on one half of the time
+//	4 = on one quarter of the time
+//	8 = on one eighth of the time
 func (cis Sensor) LEDControl(leds string, on bool, pulsedivider int) error {
 	var pd int
 	switch pulsedivider {
@@ -584,12 +592,14 @@ func (cis Sensor) SoftwareReset() error {
 }
 
 func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
-
-	f, err := os.OpenFile(cis.Port, os.O_RDWR|os.O_APPEND, 0777)
+	mode := &serial.Mode{
+		BaudRate: cis.BaudRate,
+	}
+	port, err := serial.Open(cis.Port, mode)
 	if err != nil {
 		return "", fmt.Errorf("error opening control port: %v", err)
 	}
-	defer f.Close()
+	defer port.Close()
 
 	write_string := cmd + params + "\r"
 	dt_string := time.Now().Format("2006-01-02 15:04:05.000000000")
@@ -614,7 +624,7 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 		fmt.Println("send: ", write_string)
 	}
 
-	_, err = f.Write([]byte(write_string))
+	_, err = port.Write([]byte(write_string))
 	if err != nil {
 		return "", fmt.Errorf("error sending command: %v", err)
 	}
@@ -623,8 +633,7 @@ func (cis Sensor) SendCommand(cmd string, params string) (string, error) {
 	var result string
 	start := time.Now()
 	for {
-
-		n, err := f.Read(buf)
+		n, err := port.Read(buf)
 		if err != nil {
 			if err == io.EOF {
 				if time.Since(start) > time.Second*10 {
